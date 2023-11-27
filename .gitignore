@@ -1,0 +1,5 @@
+/.devcontainer
+/.vscode
+/maintenance/test/data
+.clang-format
+/frontend/node_modules
