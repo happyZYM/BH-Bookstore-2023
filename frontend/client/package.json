@@ -1,0 +1,15 @@
+{
+  "name": "bookstoreclient",
+  "version": "1.0.0",
+  "description": "Book Store Client",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "ZhuangYumin",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^27.1.2"
+  }
+}

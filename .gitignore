@@ -2,5 +2,6 @@
 /.vscode
 /maintenance/test/data
 .clang-format
-/frontend/node_modules
+/frontend/Web/node_modules
+/frontend/client/node_modules
 /build
