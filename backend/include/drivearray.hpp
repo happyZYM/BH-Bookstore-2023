@@ -93,8 +93,8 @@ class DriveArray {
     for (int i = 0; i < free_mem_cnt; i++) {
       free_mem.push(*(p++));
     }
-    madvise(virtual_mem + stk_data_begin, free_mem_cnt * sizeof(int),
-            MADV_FREE);
+    // madvise(virtual_mem + stk_data_begin, free_mem_cnt * sizeof(int),
+            // MADV_FREE);
   }
 
   void initialise(std::string FN = "") {
@@ -148,7 +148,7 @@ class DriveArray {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(data_begin, &t, sizeofT);
-    madvise(data_begin, sizeofT, MADV_FREE);
+    // madvise(data_begin, sizeofT, MADV_FREE);
     if (++forced_refresh >= kRefreshThreshold) {
       forced_refresh = 0;
       ForceRefresh();
@@ -159,7 +159,7 @@ class DriveArray {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(&t, data_begin, sizeofT);
-    madvise(data_begin, sizeofT, MADV_FREE);
+    // madvise(data_begin, sizeofT, MADV_FREE);
     if (++forced_refresh >= kRefreshThreshold) {
       forced_refresh = 0;
       ForceRefresh();
