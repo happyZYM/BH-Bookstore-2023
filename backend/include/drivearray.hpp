@@ -26,6 +26,8 @@ class DriveArray {
       ((info_len + 2) * sizeof(int) + kPageSize - 1) / kPageSize * kPageSize;
   std::stack<int> free_mem;
   int total_mem = 0;
+  const int kRefreshThreshold = 100;
+  unsigned int forced_refresh = 0;
   std::mutex mtx;
   void reallocate(bool include_resync = false) {
     size_t length_needed =
@@ -38,6 +40,11 @@ class DriveArray {
     munmap(virtual_mem, file_length);
     file_length = std::max(file_length * 2, length_needed);
     ftruncate(file_descriptor, file_length);
+    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
+                       file_descriptor, 0);
+  }
+  void ForceRefresh() {
+    munmap(virtual_mem, file_length);
     virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
                        file_descriptor, 0);
   }
@@ -86,6 +93,8 @@ class DriveArray {
     for (int i = 0; i < free_mem_cnt; i++) {
       free_mem.push(*(p++));
     }
+    madvise(virtual_mem + stk_data_begin, free_mem_cnt * sizeof(int),
+            MADV_FREE);
   }
 
   void initialise(std::string FN = "") {
@@ -109,11 +118,19 @@ class DriveArray {
   void get_info(int &tmp, int n) {
     if (n > info_len) return;
     tmp = *((int *)(virtual_mem) + n - 1);
+    if (++forced_refresh >= kRefreshThreshold) {
+      forced_refresh = 0;
+      ForceRefresh();
+    }
   }
 
   void write_info(int tmp, int n) {
     if (n > info_len) return;
     *((int *)(virtual_mem) + n - 1) = tmp;
+    if (++forced_refresh >= kRefreshThreshold) {
+      forced_refresh = 0;
+      ForceRefresh();
+    }
   }
 
   int write(T &t) {
@@ -131,14 +148,22 @@ class DriveArray {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(data_begin, &t, sizeofT);
-    madvise(data_begin, sizeofT, MADV_DONTNEED);
+    madvise(data_begin, sizeofT, MADV_FREE);
+    if (++forced_refresh >= kRefreshThreshold) {
+      forced_refresh = 0;
+      ForceRefresh();
+    }
   }
 
   void read(T &t, const int index) {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(&t, data_begin, sizeofT);
-    madvise(data_begin, sizeofT, MADV_DONTNEED);
+    madvise(data_begin, sizeofT, MADV_FREE);
+    if (++forced_refresh >= kRefreshThreshold) {
+      forced_refresh = 0;
+      ForceRefresh();
+    }
   }
 
   void Delete(int index) { free_mem.push(index); }
