@@ -1,6 +1,6 @@
 /.devcontainer
 /.vscode
-/maintenance/test/data
+/maintenance/test
 .clang-format
 /frontend/Web/node_modules
 /frontend/client/node_modules

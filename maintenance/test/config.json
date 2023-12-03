@@ -1,8 +1,0 @@
-{
-  "StatusInterpreter":{"0":"OK","1":"Wrong Answer","139":"Segmentation fault","137":"(Killed) maybe Time Limit Error"},
-  "Cases":
-  [
-    {"command":"cd /workspaces/BH-Bookstore-2023 && timeout -s 9 1s build/code <test/testcases/basic-testcases/test0.in >/tmp/B0.out && diff -u /tmp/B0.out test/testcases/basic-testcases/test0.out >/tmp/diff_B0","uid":"#0","tid":"/1/0"},
-    {"command":"cd /workspaces/BH-Bookstore-2023 && timeout -s 9 3s build/code <test/testcases/bigint-testcases/BigIntegerTest0.in >/tmp/I0.out && diff -u /tmp/I0.out test/testcases/bigint-testcases/BigIntegerTest0.out >/tmp/diff_I0","uid":"#14","tid":"/2/0"},
-  ]
-}
