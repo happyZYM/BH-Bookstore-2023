@@ -13,7 +13,7 @@
 #include <stack>
 #include <string>
 
-template <class T, const int info_len = 2>
+template <class T, const int info_len = 2, const int kRefreshThreshold = 100>
 class DriveArray {
  private:
   static const int kPageSize = 4096;
@@ -26,10 +26,8 @@ class DriveArray {
       ((info_len + 2) * sizeof(int) + kPageSize - 1) / kPageSize * kPageSize;
   std::stack<int> free_mem;
   int total_mem = 0;
-  const int kRefreshThreshold = 100;
   unsigned int forced_refresh = 0;
-  std::mutex mtx;
-  void reallocate(bool include_resync = false) {
+  void reallocate(bool include_resync = false) noexcept {
     size_t length_needed =
         raw_data_begin +
         (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
@@ -43,7 +41,7 @@ class DriveArray {
     virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
                        file_descriptor, 0);
   }
-  void ForceRefresh() {
+  void ForceRefresh() noexcept {
     munmap(virtual_mem, file_length);
     virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
                        file_descriptor, 0);
@@ -51,6 +49,7 @@ class DriveArray {
 
  public:
   DriveArray() = default;
+  inline bool IsOpen() const noexcept { return file_descriptor >= 0; }
   ~DriveArray() {
     reallocate(true);
     int stk_data_begin =
@@ -65,11 +64,17 @@ class DriveArray {
     }
     munmap(virtual_mem, file_length);
     close(file_descriptor);
+    file_descriptor = -1;
   }
   bool operator=(const DriveArray &) = delete;
 
-  DriveArray(const std::string &file_name) : file_name(file_name) {
+  void OpenFile(const std::string &file_name) {
     if (file_name == "") return;
+    if (file_descriptor >= 0) {
+      munmap(virtual_mem, file_length);
+      close(file_descriptor);
+      file_descriptor = -1;
+    }
     file_descriptor =
         open(file_name.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     struct stat file_state;
@@ -93,8 +98,9 @@ class DriveArray {
     for (int i = 0; i < free_mem_cnt; i++) {
       free_mem.push(*(p++));
     }
-    // madvise(virtual_mem + stk_data_begin, free_mem_cnt * sizeof(int),
-            // MADV_FREE);
+  }
+  DriveArray(const std::string &file_name) : file_name(file_name) {
+    OpenFile(file_name);
   }
 
   void initialise(std::string FN = "") {
@@ -102,6 +108,7 @@ class DriveArray {
     if (file_descriptor >= 0) {
       munmap(virtual_mem, file_length);
       close(file_descriptor);
+      file_descriptor = -1;
     }
     file_descriptor =
         open(file_name.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
@@ -115,7 +122,7 @@ class DriveArray {
     for (int i = 0; i < info_len; i++) *((int *)(virtual_mem) + i) = 0;
   }
 
-  void get_info(int &tmp, int n) {
+  void get_info(int &tmp, int n) noexcept {
     if (n > info_len) return;
     tmp = *((int *)(virtual_mem) + n - 1);
     if (++forced_refresh >= kRefreshThreshold) {
@@ -124,7 +131,7 @@ class DriveArray {
     }
   }
 
-  void write_info(int tmp, int n) {
+  void write_info(int tmp, int n) noexcept {
     if (n > info_len) return;
     *((int *)(virtual_mem) + n - 1) = tmp;
     if (++forced_refresh >= kRefreshThreshold) {
@@ -133,7 +140,7 @@ class DriveArray {
     }
   }
 
-  int write(T &t) {
+  int write(T &t) noexcept {
     int index = -1;
     if (!free_mem.empty()) {
       index = free_mem.top();
@@ -144,7 +151,7 @@ class DriveArray {
     return index;
   }
 
-  void update(T &t, const int index) {
+  void update(T &t, const int index) noexcept {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(data_begin, &t, sizeofT);
@@ -155,7 +162,7 @@ class DriveArray {
     }
   }
 
-  void read(T &t, const int index) {
+  void read(T &t, const int index) noexcept {
     reallocate();
     void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
     std::memmove(&t, data_begin, sizeofT);
@@ -166,7 +173,7 @@ class DriveArray {
     }
   }
 
-  void Delete(int index) { free_mem.push(index); }
+  void Delete(int index) noexcept { free_mem.push(index); }
 };
 
 #endif  // BPT_DriveArray_HPP
