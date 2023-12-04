@@ -57,7 +57,12 @@ class String2Index {
     mem.OpenFile(file_name);
     delete[] hash_table;
     hash_table = new int[kBucketSize];
-    for (int i = 0; i < kBucketSize; ++i) mem.get_info(hash_table[i], i + 1);
+    // std::memmove(hash_table, mem.RawData(), sizeof(int) * kBucketSize);
+    // mem.ForceRefresh();
+    for (int i = 0; i < kBucketSize; i++) {
+      hash_table[i] = *((int *)(mem.RawData()) + i);
+      if (i % 4096 == 0) mem.ForceRefresh();
+    }
   }
   String2Index(const std::string __file_name) : file_name(__file_name) {
     OpenFile(file_name);
@@ -72,8 +77,13 @@ class String2Index {
     hash_table = new int[kBucketSize]();
   }
   ~String2Index() {
-    for (int i = 0; i < kBucketSize; ++i) mem.write_info(hash_table[i], i + 1);
-    delete[] hash_table;
+    if (hash_table != nullptr) {
+      for (int i = 0; i < kBucketSize; i++) {
+        *((int *)(mem.RawData()) + i) = hash_table[i];
+        if (i % 4096 == 0) mem.ForceRefresh();
+      }
+      delete[] hash_table;
+    }
   }
   void Insert(const std::string &str, int val) noexcept {
     size_t hash_val = Hash(str);

@@ -41,33 +41,35 @@ class DriveArray {
     virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
                        file_descriptor, 0);
   }
-  void ForceRefresh() noexcept {
-    munmap(virtual_mem, file_length);
-    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
-                       file_descriptor, 0);
-  }
 
  public:
   DriveArray() = default;
   inline bool IsOpen() const noexcept { return file_descriptor >= 0; }
   ~DriveArray() {
-    reallocate(true);
-    int stk_data_begin =
-        raw_data_begin +
-        (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
-    *((int *)(virtual_mem) + info_len) = total_mem;
-    *((int *)(virtual_mem) + info_len + 1) = (int)free_mem.size();
-    int *p = (int *)(virtual_mem + stk_data_begin);
-    while (!free_mem.empty()) {
-      *(p++) = free_mem.top();
-      free_mem.pop();
+    if (file_descriptor >= 0) {
+      reallocate(true);
+      int stk_data_begin =
+          raw_data_begin +
+          (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
+      *((int *)(virtual_mem) + info_len) = total_mem;
+      *((int *)(virtual_mem) + info_len + 1) = (int)free_mem.size();
+      int *p = (int *)(virtual_mem + stk_data_begin);
+      while (!free_mem.empty()) {
+        *(p++) = free_mem.top();
+        free_mem.pop();
+      }
+      munmap(virtual_mem, file_length);
+      close(file_descriptor);
+      file_descriptor = -1;
     }
-    munmap(virtual_mem, file_length);
-    close(file_descriptor);
-    file_descriptor = -1;
   }
   bool operator=(const DriveArray &) = delete;
-
+  void ForceRefresh() noexcept {
+    munmap(virtual_mem, file_length);
+    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
+                       file_descriptor, 0);
+  }
+  void *RawData() noexcept { return virtual_mem; }
   void OpenFile(const std::string &file_name) {
     if (file_name == "") return;
     if (file_descriptor >= 0) {
