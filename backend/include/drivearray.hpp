@@ -1,181 +1,203 @@
 #ifndef BPT_DriveArray_HPP
 #define BPT_DriveArray_HPP
 
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <algorithm>
 #include <cstring>
-#include <mutex>
+#include <fstream>
+#include <queue>
 #include <stack>
 #include <string>
-
-template <class T, const int info_len = 2, const int kRefreshThreshold = 100>
+#include <unordered_map>
+template <class T, const int info_len = 2, const int kBufSize = 100>
 class DriveArray {
  private:
   static const int kPageSize = 4096;
-  int file_descriptor = -1;
-  size_t file_length = 0;
-  void *virtual_mem;
-  std::string file_name;
-  const int sizeofT = sizeof(T);
-  const int raw_data_begin =
+  static const int kDataBiginOffset =
       ((info_len + 2) * sizeof(int) + kPageSize - 1) / kPageSize * kPageSize;
-  std::stack<int> free_mem;
-  int total_mem = 0;
-  unsigned int forced_refresh = 0;
-  void reallocate(bool include_resync = false) noexcept {
-    size_t length_needed =
-        raw_data_begin +
-        (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
-    if (include_resync)
-      length_needed += (free_mem.size() * sizeof(int) + kPageSize - 1) /
-                       kPageSize * kPageSize;
-    if (file_length >= length_needed) return;
-    munmap(virtual_mem, file_length);
-    file_length = std::max(file_length * 2, length_needed);
-    ftruncate(file_descriptor, file_length);
-    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
-                       file_descriptor, 0);
+  static const int sizeofT = sizeof(T);
+  struct DataType {
+    int next_vacant_data_index;
+    T val;
+  };
+  static const int kBlockSize =
+      (sizeof(DataType) + kPageSize - 1) / kPageSize * kPageSize;
+  static const int kDataPerBlock = kBlockSize / sizeof(DataType);
+  struct BlockType {
+    DataType data[kDataPerBlock];
+  };
+  char rest[kBlockSize - sizeof(BlockType)];
+  static_assert(kBlockSize % kPageSize == 0, "kBlockSize % kPageSize != 0");
+  std::string file_name;
+  int total_block_number = 0, first_vacant_data_index = 0;
+  /**
+   * DataIndex=(BlockIndex-1)*kDataPerBlock+InnnerIndex
+   */
+  std::unordered_map<int, BlockType *> cache;
+  std::queue<int> vis_que;
+  void LoadCache(int block_index) {
+    BlockType *tmp = new BlockType;
+    fs.seekg(kDataBiginOffset + (block_index - 1) * kBlockSize, std::ios::beg);
+    fs.read(reinterpret_cast<char *>(tmp), sizeof(BlockType));
+    cache[block_index] = tmp;
+    vis_que.push(block_index);
+  }
+  void ReleaseOldestCache() {
+    int block_index = vis_que.front();
+    vis_que.pop();
+    fs.seekp(kDataBiginOffset + (block_index - 1) * kBlockSize, std::ios::beg);
+    fs.write(reinterpret_cast<char *>(cache[block_index]), sizeof(BlockType));
+    delete cache[block_index];
+    cache.erase(block_index);
+  }
+  BlockType *OrderBlock(int block_index) {
+    if (cache.find(block_index) != cache.end()) return cache[block_index];
+    if (cache.size() == kBufSize) ReleaseOldestCache();
+    LoadCache(block_index);
+    return cache[block_index];
+  }
+  int AppEndBlock() {
+    fs.seekp(0, std::ios::end);
+    BlockType tmp;
+    fs.write(reinterpret_cast<char *>(&tmp), sizeof(BlockType));
+    fs.write(rest, kBlockSize - sizeof(BlockType));
+    ++total_block_number;
+    return total_block_number;
   }
 
  public:
+  std::fstream fs;
   DriveArray() = default;
-  inline bool IsOpen() const noexcept { return file_descriptor >= 0; }
-  ~DriveArray() {
-    if (file_descriptor >= 0) {
-      reallocate(true);
-      int stk_data_begin =
-          raw_data_begin +
-          (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
-      *((int *)(virtual_mem) + info_len) = total_mem;
-      *((int *)(virtual_mem) + info_len + 1) = (int)free_mem.size();
-      int *p = (int *)(virtual_mem + stk_data_begin);
-      while (!free_mem.empty()) {
-        *(p++) = free_mem.top();
-        free_mem.pop();
-      }
-      munmap(virtual_mem, file_length);
-      close(file_descriptor);
-      file_descriptor = -1;
-    }
-  }
-  bool operator=(const DriveArray &) = delete;
-  void ForceRefresh() noexcept {
-    munmap(virtual_mem, file_length);
-    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
-                       file_descriptor, 0);
-  }
-  void *RawData() noexcept { return virtual_mem; }
-  void OpenFile(const std::string &file_name) {
-    if (file_name == "") return;
-    if (file_descriptor >= 0) {
-      munmap(virtual_mem, file_length);
-      close(file_descriptor);
-      file_descriptor = -1;
-    }
-    file_descriptor =
-        open(file_name.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    struct stat file_state;
-    fstat(file_descriptor, &file_state);
-    file_length = file_state.st_size;
-    if (file_length == 0) {
-      file_length = 1024 * 1024;
-      file_length =
-          std::max(file_length, ((info_len + 2) * sizeof(int) + kPageSize - 1) /
-                                    kPageSize * kPageSize);
-      ftruncate(file_descriptor, file_length);
-    }
-    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
-                       file_descriptor, 0);
-    total_mem = *((int *)(virtual_mem) + info_len);
-    int free_mem_cnt = *((int *)(virtual_mem) + info_len + 1);
-    int stk_data_begin =
-        raw_data_begin +
-        (sizeofT * total_mem + kPageSize - 1) / kPageSize * kPageSize;
-    int *p = (int *)(virtual_mem + stk_data_begin);
-    for (int i = 0; i < free_mem_cnt; i++) {
-      free_mem.push(*(p++));
-    }
-  }
+  DriveArray(const DriveArray &) = delete;
+  DriveArray &operator=(const DriveArray &) = delete;
   DriveArray(const std::string &file_name) : file_name(file_name) {
     OpenFile(file_name);
   }
 
-  void initialise(std::string FN = "") {
-    if (FN != "") file_name = FN;
-    if (file_descriptor >= 0) {
-      munmap(virtual_mem, file_length);
-      close(file_descriptor);
-      file_descriptor = -1;
+  inline bool IsOpen() const noexcept { return fs.is_open(); }
+  ~DriveArray() { CloseFile(); }
+  void CloseFile() {
+    if (!fs.is_open()) return;
+    while (cache.size() > 0) ReleaseOldestCache();
+    fs.seekp(sizeof(int) * info_len, std::ios::beg);
+    fs.write(reinterpret_cast<char *>(&first_vacant_data_index), sizeof(int));
+    fs.write(reinterpret_cast<char *>(&total_block_number), sizeof(int));
+    fs.close();
+    file_name = "";
+    first_vacant_data_index = 0;
+    total_block_number = 0;
+  }
+  void OpenFile(const std::string &__file_name) {
+    if (fs.is_open()) CloseFile();
+    file_name = __file_name;
+    fs.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+    if (!fs.is_open()) {
+      fs.open(file_name, std::ios::out | std::ios::binary);
+      fs.seekp(0, std::ios::beg);
+      int tmp = 0;
+      total_block_number = 0;
+      first_vacant_data_index = 0;
+      for (int i = 0; i < kDataBiginOffset / sizeof(int); ++i) {
+        fs.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+      }
+      fs.close();
+      fs.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
     }
-    file_descriptor =
-        open(file_name.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    file_length = 1024 * 1024;
-    file_length =
-        std::max(file_length, ((info_len + 2) * sizeof(int) + kPageSize - 1) /
-                                  kPageSize * kPageSize);
-    ftruncate(file_descriptor, file_length);
-    virtual_mem = mmap(nullptr, file_length, PROT_READ | PROT_WRITE, MAP_SHARED,
-                       file_descriptor, 0);
-    for (int i = 0; i < info_len; i++) *((int *)(virtual_mem) + i) = 0;
+    fs.seekg(sizeof(int) * info_len, std::ios::beg);
+    fs.read(reinterpret_cast<char *>(&first_vacant_data_index), sizeof(int));
+    fs.read(reinterpret_cast<char *>(&total_block_number), sizeof(int));
+  }
+  void initialise(std::string FN = "") {
+    if (fs.is_open()) {
+      std::string name_bak = file_name;
+      CloseFile();
+      file_name = name_bak;
+    }
+    if (FN != "") file_name = FN;
+    if (file_name == "") return;
+    fs.open(file_name, std::ios::out | std::ios::binary);
+    fs.seekp(0, std::ios::beg);
+    int tmp = 0;
+    total_block_number = 0;
+    first_vacant_data_index = 0;
+    for (int i = 0; i < kDataBiginOffset / sizeof(int); ++i) {
+      fs.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+    }
+    fs.close();
+    fs.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
   }
 
   void get_info(int &tmp, int n) noexcept {
     if (n > info_len) return;
-    tmp = *((int *)(virtual_mem) + n - 1);
-    if (++forced_refresh >= kRefreshThreshold) {
-      forced_refresh = 0;
-      ForceRefresh();
-    }
+    fs.seekg((n - 1) * sizeof(int), std::ios::beg);
+    fs.read(reinterpret_cast<char *>(&tmp), sizeof(int));
   }
 
   void write_info(int tmp, int n) noexcept {
     if (n > info_len) return;
-    *((int *)(virtual_mem) + n - 1) = tmp;
-    if (++forced_refresh >= kRefreshThreshold) {
-      forced_refresh = 0;
-      ForceRefresh();
-    }
+    fs.seekp((n - 1) * sizeof(int), std::ios::beg);
+    fs.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+  }
+
+  void LoadInfoTo(int *dest) {
+    fs.seekg(0, std::ios::beg);
+    fs.read(reinterpret_cast<char *>(dest), sizeof(int) * info_len);
+  }
+
+  void WriteInfoFrom(int *src) {
+    fs.seekp(0, std::ios::beg);
+    fs.write(reinterpret_cast<char *>(src), sizeof(int) * info_len);
   }
 
   int write(T &t) noexcept {
-    int index = -1;
-    if (!free_mem.empty()) {
-      index = free_mem.top();
-      free_mem.pop();
-    } else
-      index = ++total_mem;
-    update(t, index);
-    return index;
+    if (first_vacant_data_index == 0) {
+      int new_block_index = AppEndBlock();
+      int index = (new_block_index - 1) * kDataPerBlock + 1;
+      BlockType *blk_ptr = OrderBlock(new_block_index);
+      if (kDataPerBlock > 1)
+        first_vacant_data_index = index + 1;
+      else
+        first_vacant_data_index = 0;
+      for (int i = 1; i < kDataPerBlock - 1; i++)
+        blk_ptr->data[i].next_vacant_data_index = index + i + 1;
+      blk_ptr->data[kDataPerBlock - 1].next_vacant_data_index = 0;
+      blk_ptr->data[0].next_vacant_data_index = 0;
+      blk_ptr->data[0].val = t;
+      return index;
+    } else {
+      int block_index = (first_vacant_data_index - 1) / kDataPerBlock + 1;
+      int inner_index = (first_vacant_data_index - 1) % kDataPerBlock + 1;
+      BlockType *blk_ptr = OrderBlock(block_index);
+      int index = first_vacant_data_index;
+      first_vacant_data_index =
+          blk_ptr->data[inner_index - 1].next_vacant_data_index;
+      blk_ptr->data[inner_index - 1].next_vacant_data_index = 0;
+      blk_ptr->data[inner_index - 1].val = t;
+      return index;
+    }
   }
 
   void update(T &t, const int index) noexcept {
-    reallocate();
-    void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
-    std::memmove(data_begin, &t, sizeofT);
-    // madvise(data_begin, sizeofT, MADV_FREE);
-    if (++forced_refresh >= kRefreshThreshold) {
-      forced_refresh = 0;
-      ForceRefresh();
-    }
+    int block_index = (index - 1) / kDataPerBlock + 1;
+    int inner_index = (index - 1) % kDataPerBlock + 1;
+    BlockType *blk_ptr = OrderBlock(block_index);
+    blk_ptr->data[inner_index - 1].val = t;
   }
 
   void read(T &t, const int index) noexcept {
-    reallocate();
-    void *data_begin = virtual_mem + raw_data_begin + sizeofT * (index - 1);
-    std::memmove(&t, data_begin, sizeofT);
-    // madvise(data_begin, sizeofT, MADV_FREE);
-    if (++forced_refresh >= kRefreshThreshold) {
-      forced_refresh = 0;
-      ForceRefresh();
-    }
+    int block_index = (index - 1) / kDataPerBlock + 1;
+    int inner_index = (index - 1) % kDataPerBlock + 1;
+    BlockType *blk_ptr = OrderBlock(block_index);
+    t = blk_ptr->data[inner_index - 1].val;
   }
 
-  void Delete(int index) noexcept { free_mem.push(index); }
+  void Delete(int index) noexcept {
+    int block_index = (index - 1) / kDataPerBlock + 1;
+    int inner_index = (index - 1) % kDataPerBlock + 1;
+    BlockType *blk_ptr = OrderBlock(block_index);
+    blk_ptr->data[inner_index - 1].next_vacant_data_index =
+        first_vacant_data_index;
+    first_vacant_data_index = index;
+  }
 };
 
 #endif  // BPT_DriveArray_HPP

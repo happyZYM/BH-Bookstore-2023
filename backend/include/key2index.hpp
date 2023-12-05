@@ -21,19 +21,19 @@ class String2Index {
     }
   };
   static const int kNodesPerBlock =
-      (kPageSize - 2 * sizeof(int)) / sizeof(Node);
+      (kPageSize - 3 * sizeof(int)) / sizeof(Node);
 
   struct Block {
     int tot, nxt_idx;
     Node data[kNodesPerBlock];
-    char padding[kPageSize - 2 * sizeof(int) - sizeof(Node) * (kNodesPerBlock)];
+    char padding[kPageSize - 3 * sizeof(int) - sizeof(Node) * (kNodesPerBlock)];
     Block() : tot(0), nxt_idx(0) {}
     Block(int _tot, int _nxt_idx) : tot(_tot), nxt_idx(_nxt_idx) {}
   };
   static_assert(kNodesPerBlock >= 1, "kNodesPerBlock error");
-  static_assert(sizeof(Block) == kPageSize, "Block Size error");
+  static_assert(sizeof(Block) == kPageSize - 4, "Block Size error");
 
-  DriveArray<Block, kBucketSize, 10> mem;
+  DriveArray<Block, kBucketSize, 100> mem;
   int *hash_table = nullptr;
   std::string file_name;
 
@@ -59,10 +59,7 @@ class String2Index {
     hash_table = new int[kBucketSize];
     // std::memmove(hash_table, mem.RawData(), sizeof(int) * kBucketSize);
     // mem.ForceRefresh();
-    for (int i = 0; i < kBucketSize; i++) {
-      hash_table[i] = *((int *)(mem.RawData()) + i);
-      if (i % 4096 == 0) mem.ForceRefresh();
-    }
+    mem.LoadInfoTo(hash_table);
   }
   String2Index(const std::string __file_name) : file_name(__file_name) {
     OpenFile(file_name);
@@ -78,10 +75,7 @@ class String2Index {
   }
   ~String2Index() {
     if (hash_table != nullptr) {
-      for (int i = 0; i < kBucketSize; i++) {
-        *((int *)(mem.RawData()) + i) = hash_table[i];
-        if (i % 4096 == 0) mem.ForceRefresh();
-      }
+      mem.WriteInfoFrom(hash_table);
       delete[] hash_table;
     }
   }
