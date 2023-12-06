@@ -25,7 +25,7 @@ class DriveArray {
   struct BlockType {
     DataType data[kDataPerBlock];
   };
-  char rest[kBlockSize - sizeof(BlockType)];
+  char rest[kBlockSize];
   static_assert(kBlockSize % kPageSize == 0, "kBlockSize % kPageSize != 0");
   std::string file_name;
   int total_block_number = 0, first_vacant_data_index = 0;
@@ -56,11 +56,15 @@ class DriveArray {
     return cache[block_index];
   }
   int AppEndBlock() {
+    if (cache.size() == kBufSize) ReleaseOldestCache();
+    BlockType *tmp = new BlockType;
+    // fs.write(reinterpret_cast<char *>(tmp), sizeof(BlockType));
+    // fs.write(rest, kBlockSize - sizeof(BlockType));
     fs.seekp(0, std::ios::end);
-    BlockType tmp;
-    fs.write(reinterpret_cast<char *>(&tmp), sizeof(BlockType));
-    fs.write(rest, kBlockSize - sizeof(BlockType));
+    fs.write(rest, kBlockSize);
     ++total_block_number;
+    cache[total_block_number] = tmp;
+    vis_que.push(total_block_number);
     return total_block_number;
   }
 
@@ -161,7 +165,8 @@ class DriveArray {
         blk_ptr->data[i].next_vacant_data_index = index + i + 1;
       blk_ptr->data[kDataPerBlock - 1].next_vacant_data_index = 0;
       blk_ptr->data[0].next_vacant_data_index = 0;
-      blk_ptr->data[0].val = t;
+      // blk_ptr->data[0].val = t;
+      std::memmove(&blk_ptr->data[0].val, &t, sizeofT);
       return index;
     } else {
       int block_index = (first_vacant_data_index - 1) / kDataPerBlock + 1;
@@ -171,7 +176,8 @@ class DriveArray {
       first_vacant_data_index =
           blk_ptr->data[inner_index - 1].next_vacant_data_index;
       blk_ptr->data[inner_index - 1].next_vacant_data_index = 0;
-      blk_ptr->data[inner_index - 1].val = t;
+      // blk_ptr->data[inner_index - 1].val = t;
+      std::memmove(&blk_ptr->data[inner_index - 1].val, &t, sizeofT);
       return index;
     }
   }
@@ -180,14 +186,16 @@ class DriveArray {
     int block_index = (index - 1) / kDataPerBlock + 1;
     int inner_index = (index - 1) % kDataPerBlock + 1;
     BlockType *blk_ptr = OrderBlock(block_index);
-    blk_ptr->data[inner_index - 1].val = t;
+    // blk_ptr->data[inner_index - 1].val = t;
+    std::memmove(&blk_ptr->data[inner_index - 1].val, &t, sizeofT);
   }
 
   void read(T &t, const int index) noexcept {
     int block_index = (index - 1) / kDataPerBlock + 1;
     int inner_index = (index - 1) % kDataPerBlock + 1;
     BlockType *blk_ptr = OrderBlock(block_index);
-    t = blk_ptr->data[inner_index - 1].val;
+    // t = blk_ptr->data[inner_index - 1].val;
+    std::memmove(&t, &blk_ptr->data[inner_index - 1].val, sizeofT);
   }
 
   void Delete(int index) noexcept {
