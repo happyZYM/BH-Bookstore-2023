@@ -27,6 +27,8 @@ class DriveArray {
   };
   char rest[kBlockSize];
   static_assert(kBlockSize % kPageSize == 0, "kBlockSize % kPageSize != 0");
+  static_assert(kBlockSize >= sizeof(BlockType),
+                "kBlockSize < sizeof(BlockType)");
   std::string file_name;
   int total_block_number = 0, first_vacant_data_index = 0;
   /**
@@ -34,8 +36,9 @@ class DriveArray {
    */
   std::unordered_map<int, BlockType *> cache;
   std::queue<int> vis_que;
+  BlockType *cache_mem, **cache_mem_ptr, **cache_mem_ptr_beg;
   void LoadCache(int block_index) {
-    BlockType *tmp = new BlockType;
+    BlockType *tmp = *(--cache_mem_ptr);
     fs.seekg(kDataBiginOffset + (block_index - 1) * kBlockSize, std::ios::beg);
     fs.read(reinterpret_cast<char *>(tmp), sizeof(BlockType));
     cache[block_index] = tmp;
@@ -46,7 +49,7 @@ class DriveArray {
     vis_que.pop();
     fs.seekp(kDataBiginOffset + (block_index - 1) * kBlockSize, std::ios::beg);
     fs.write(reinterpret_cast<char *>(cache[block_index]), sizeof(BlockType));
-    delete cache[block_index];
+    *(cache_mem_ptr++) = cache[block_index];
     cache.erase(block_index);
   }
   BlockType *OrderBlock(int block_index) {
@@ -57,9 +60,7 @@ class DriveArray {
   }
   int AppEndBlock() {
     if (cache.size() == kBufSize) ReleaseOldestCache();
-    BlockType *tmp = new BlockType;
-    // fs.write(reinterpret_cast<char *>(tmp), sizeof(BlockType));
-    // fs.write(rest, kBlockSize - sizeof(BlockType));
+    BlockType *tmp = *(--cache_mem_ptr);
     fs.seekp(0, std::ios::end);
     fs.write(rest, kBlockSize);
     ++total_block_number;
@@ -70,15 +71,32 @@ class DriveArray {
 
  public:
   std::fstream fs;
-  DriveArray() = default;
+  DriveArray() {
+    cache_mem = new BlockType[kBufSize + 5];
+    typedef BlockType *BlockTypePtr;
+    cache_mem_ptr = new BlockTypePtr[kBufSize + 5];
+    for (int i = 0; i < kBufSize + 5; i++) cache_mem_ptr[i] = &cache_mem[i];
+    cache_mem_ptr_beg = cache_mem_ptr;
+    cache_mem_ptr += kBufSize + 5;
+  }
   DriveArray(const DriveArray &) = delete;
   DriveArray &operator=(const DriveArray &) = delete;
   DriveArray(const std::string &file_name) : file_name(file_name) {
+    cache_mem = new BlockType[kBufSize + 5];
+    typedef BlockType *BlockTypePtr;
+    cache_mem_ptr = new BlockTypePtr[kBufSize + 5];
+    for (int i = 0; i < kBufSize + 5; i++) cache_mem_ptr[i] = &cache_mem[i];
+    cache_mem_ptr_beg = cache_mem_ptr;
+    cache_mem_ptr += kBufSize + 5;
     OpenFile(file_name);
   }
 
   inline bool IsOpen() const noexcept { return fs.is_open(); }
-  ~DriveArray() { CloseFile(); }
+  ~DriveArray() {
+    CloseFile();
+    delete[] cache_mem;
+    delete[] cache_mem_ptr_beg;
+  }
   void CloseFile() {
     if (!fs.is_open()) return;
     while (cache.size() > 0) ReleaseOldestCache();
@@ -100,8 +118,9 @@ class DriveArray {
       int tmp = 0;
       total_block_number = 0;
       first_vacant_data_index = 0;
-      for (int i = 0; i < kDataBiginOffset / sizeof(int); ++i) {
-        fs.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+      memset(rest, 0, kPageSize);
+      for (int i = 0; i < kDataBiginOffset / kPageSize; ++i) {
+        fs.write(reinterpret_cast<char *>(rest), kPageSize);
       }
       fs.close();
       fs.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
@@ -123,8 +142,9 @@ class DriveArray {
     int tmp = 0;
     total_block_number = 0;
     first_vacant_data_index = 0;
-    for (int i = 0; i < kDataBiginOffset / sizeof(int); ++i) {
-      fs.write(reinterpret_cast<char *>(&tmp), sizeof(int));
+    memset(rest, 0, kPageSize);
+    for (int i = 0; i < kDataBiginOffset / kPageSize; ++i) {
+      fs.write(reinterpret_cast<char *>(rest), kPageSize);
     }
     fs.close();
     fs.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
