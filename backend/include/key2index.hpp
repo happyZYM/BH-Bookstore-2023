@@ -10,15 +10,26 @@ class String2Index {
  private:
   static const int kBucketSize = 262142;
   static const int kPageSize = 4096;
+  constexpr static char salt1[10] = "mL;]-=eT";
+  constexpr static char salt2[10] = "9B<mF_me";
+  constexpr static char sub_salt1[10] = "23333";
+  constexpr static char sub_salt2[10] = "...";
+
+  static inline size_t Hash(std::string str) noexcept {
+    str = salt1 + str + salt2;
+    size_t ret = 0;
+    for (int i = 0; i < str.length(); ++i) ret = ret * 131 + str[i];
+    return ret;
+  }
 
   struct Node {
-    char str[66];
+    size_t main_hash, sub_hash;
     int val;
     Node() = default;
-    Node(const std::string &_str, int _val) : val(_val) {
-      assert(_str.length() <= 64);
-      strcpy(str, _str.c_str());
-    }
+    Node(std::string str, int _val)
+        : main_hash(Hash(str)),
+          sub_hash(Hash(sub_salt1 + str + sub_salt2)),
+          val(_val) {}
   };
   static const int kNodesPerBlock =
       (kPageSize - 3 * sizeof(int)) / sizeof(Node);
@@ -26,25 +37,17 @@ class String2Index {
   struct Block {
     int tot, nxt_idx;
     Node data[kNodesPerBlock];
-    char padding[kPageSize - 3 * sizeof(int) - sizeof(Node) * (kNodesPerBlock)];
+    // char padding[kPageSize - 3 * sizeof(int) - sizeof(Node) *
+    // (kNodesPerBlock)];
     Block() : tot(0), nxt_idx(0) {}
     Block(int _tot, int _nxt_idx) : tot(_tot), nxt_idx(_nxt_idx) {}
   };
   static_assert(kNodesPerBlock >= 1, "kNodesPerBlock error");
-  static_assert(sizeof(Block) == kPageSize - 4, "Block Size error");
+  static_assert(sizeof(Block) <= kPageSize - 4, "Block Size error");
 
   DriveArray<Block, kBucketSize, 100> mem;
   int *hash_table = nullptr;
   std::string file_name;
-
-  inline size_t Hash(std::string str) noexcept {
-    const static std::string salt1 = "mL;]-=eT";
-    const static std::string salt2 = "9B<mF_me";
-    str = salt1 + str + salt2;
-    size_t ret = 0;
-    for (int i = 0; i < str.length(); ++i) ret = ret * 131 + str[i];
-    return ret;
-  }
 
  public:
   String2Index() = default;
@@ -104,10 +107,14 @@ class String2Index {
     size_t hash_val = Hash(str);
     int idx = hash_table[hash_val % kBucketSize];
     Block *blk_ptr = new Block;
+    size_t str_main_hash = Hash(str),
+           str_sub_hash = Hash(sub_salt1 + str + sub_salt2);
     while (idx != 0) {
       mem.read(*blk_ptr, idx);
       for (int i = 0; i < blk_ptr->tot; ++i) {
-        if (blk_ptr->data[i].str == str && blk_ptr->data[i].val == val) {
+        if (blk_ptr->data[i].main_hash == str_main_hash &&
+            blk_ptr->data[i].sub_hash == str_sub_hash &&
+            blk_ptr->data[i].val == val) {
           int headidx = hash_table[hash_val % kBucketSize];
           if (headidx == idx) {
             blk_ptr->data[i] = blk_ptr->data[--blk_ptr->tot];
@@ -137,10 +144,13 @@ class String2Index {
     size_t hash_val = Hash(str);
     int idx = hash_table[hash_val % kBucketSize];
     Block *blk_ptr = new Block;
+    size_t str_main_hash = Hash(str),
+           str_sub_hash = Hash(sub_salt1 + str + sub_salt2);
     while (idx != 0) {
       mem.read(*blk_ptr, idx);
       for (int i = 0; i < blk_ptr->tot; ++i) {
-        if (blk_ptr->data[i].str == str) {
+        if (blk_ptr->data[i].main_hash == str_main_hash &&
+            blk_ptr->data[i].sub_hash == str_sub_hash) {
           ret.push_back(blk_ptr->data[i].val);
         }
       }
