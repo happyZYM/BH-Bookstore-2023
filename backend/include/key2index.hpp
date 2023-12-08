@@ -1,5 +1,5 @@
-#ifndef BPT_KEY2INDEX_HPP
-#define BPT_KEY2INDEX_HPP
+#ifndef PROTECTOR_KEY2INDEX_HPP
+#define PROTECTOR_KEY2INDEX_HPP
 #include <cassert>
 #include <functional>
 #include <string>
@@ -143,4 +143,4 @@ class String2Index {
     return std::move(ret);
   }
 };
-#endif  // BPT_KEY2INDEX_HPP
+#endif  // PROTECTOR_KEY2INDEX_HPP

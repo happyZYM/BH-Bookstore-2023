@@ -1,5 +1,5 @@
-#ifndef BPT_DriveArray_HPP
-#define BPT_DriveArray_HPP
+#ifndef PROTECTOR_DRIVEARRAY_HPP
+#define PROTECTOR_DRIVEARRAY_HPP
 
 #include <algorithm>
 #include <cstring>
@@ -228,4 +228,4 @@ class DriveArray {
   }
 };
 
-#endif  // BPT_DriveArray_HPP
+#endif  // PROTECTOR_DRIVEARRAY_HPP
