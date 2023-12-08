@@ -14,16 +14,36 @@ class String2Index {
   constexpr static char salt2[10] = "9B<mF_me";
   constexpr static char sub_salt1[10] = "23333";
   constexpr static char sub_salt2[10] = "...";
+  constexpr static char inner_salt[17] = "si9aW@zl#2$3%4^!";
 
-  static inline size_t Hash(std::string str) noexcept {
+  typedef unsigned long long hash_t;
+  static_assert(sizeof(hash_t) == 8);
+  static inline hash_t Hash(std::string str) noexcept {
+    /* Reference: http://xorshift.di.unimi.it/splitmix64.c */
     str = salt1 + str + salt2;
-    size_t ret = 0;
-    for (int i = 0; i < str.length(); ++i) ret = ret * 131 + str[i];
+    hash_t ret = 0;
+    int i;
+    for (; i + 8 <= str.length(); i += 8) {
+      ret ^= *reinterpret_cast<const hash_t *>(str.c_str() + i);
+      ret ^= *reinterpret_cast<const hash_t *>(inner_salt + (i & 15));
+      ret += 0x9e3779b97f4a7c15;
+      ret = (ret ^ (ret >> 30)) * 0xbf58476d1ce4e5b9;
+      ret = (ret ^ (ret >> 27)) * 0x94d049bb133111eb;
+      ret ^= ret >> 31;
+    }
+    for (; i < str.length(); ++i) {
+      ret ^= str[i];
+      ret ^= inner_salt[i & 15];
+      ret += 0x9e3779b97f4a7c15;
+      ret = (ret ^ (ret >> 30)) * 0xbf58476d1ce4e5b9;
+      ret = (ret ^ (ret >> 27)) * 0x94d049bb133111eb;
+      ret ^= ret >> 31;
+    }
     return ret;
   }
 
   struct Node {
-    size_t main_hash, sub_hash;
+    hash_t main_hash, sub_hash;
     int val, nxt_idx = 0;
     Node() = default;
     Node(std::string str, int _val)
@@ -70,7 +90,7 @@ class String2Index {
     }
   }
   void Insert(const std::string &str, int val) noexcept {
-    size_t hash_val = Hash(str);
+    hash_t hash_val = Hash(str);
     int idx = hash_table[hash_val % kBucketSize];
     Node nd(str, val);
     if (idx == 0) {
@@ -83,7 +103,7 @@ class String2Index {
     }
   }
   void Delete(const std::string &str, int val) noexcept {
-    size_t str_main_hash = Hash(str),
+    hash_t str_main_hash = Hash(str),
            str_sub_hash = Hash(sub_salt1 + str + sub_salt2);
     int idx = hash_table[str_main_hash % kBucketSize];
     Node nd, last_nd;
@@ -109,7 +129,7 @@ class String2Index {
   }
   std::vector<int> Find(const std::string &str) noexcept {
     std::vector<int> ret;
-    size_t str_main_hash = Hash(str),
+    hash_t str_main_hash = Hash(str),
            str_sub_hash = Hash(sub_salt1 + str + sub_salt2);
     int idx = hash_table[str_main_hash % kBucketSize];
     Node nd;
