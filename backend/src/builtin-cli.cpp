@@ -35,16 +35,16 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       input.readlock();
       input << "#Request " << SessionToken << " I-T-D" << ++cnt << " "
             << AuthenticationKey << ' ' << cmd << '\n';
-      assert(input.internalStream.peek() != EOF);
+      // assert(input.internalStream.peek() != EOF);
       input.unreadlock();
-      assert(input.is_writing == false);
-      debugPrint("Sent Request ", cnt, " cmd=", cmd);
+      // assert(input.is_writing == false);
+      // debugPrint("Sent Request ", cnt, " cmd=", cmd);
       std::string SessionToken;
       std::string OperationToken;
       int LineCounter;
       output >> SessionToken >> OperationToken >> LineCounter;
-      debugPrint("Get the Head of response id=", OperationToken,
-                 " LineCounter=", LineCounter);
+      // debugPrint("Get the Head of response id=", OperationToken,
+      //            " LineCounter=", LineCounter);
       // debugPrint("Get SessionToken=", SessionToken,
       //            " OperationToken=", OperationToken,
       //            " LineCounter=", LineCounter);
@@ -53,7 +53,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         output.getline(tmp);
         std::cout << tmp << std::endl;
         // std::cerr << tmp << std::endl;
-        debugPrint(tmp);
+        // debugPrint(tmp);
       }
       // std::cout.flush();
     }
