@@ -28,8 +28,15 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       }
       input << "#Request " << SessionToken << " I-T-D " << AuthenticationKey
             << ' ' << cmd << '\n';
-      output.getline(tmp);
-      std::cout << tmp << std::endl;
+      std::string SessionToken;
+      std::string OperationToken;
+      int LineCounter;
+      continue;
+      output >> SessionToken >> OperationToken >> LineCounter;
+      for (int i = 0; i < LineCounter; i++) {
+        output.getline(tmp);
+        std::cout << tmp << std::endl;
+      }
     }
     input << "#CloseSession " << SessionToken << ' ' << AuthenticationKey
           << '\n';

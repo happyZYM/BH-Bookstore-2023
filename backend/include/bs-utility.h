@@ -35,9 +35,12 @@ class BlockingStringStream {
   BlockingStringStream &operator>>(T &val);
   BlockingStringStream &getline(std::string &str, char delim = '\n');
   std::stringstream internalStream;
+  void lock();
+  void unlock();
 
  private:
   std::mutex mutex;
+  std::mutex custom_mutex;
   std::condition_variable condition;
 };
 // Implementation of operator<<
@@ -82,7 +85,7 @@ class ReadWriteLock {
   void endWrite();
 };
 class SessionClass {
-  public:
+ public:
   std::stack<int> login_stack;
   std::string SessionToken;
   std::string OuthorizationKey;

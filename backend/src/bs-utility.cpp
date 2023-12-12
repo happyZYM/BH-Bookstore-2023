@@ -49,3 +49,6 @@ void debugPrint() {
   std::cerr << std::endl;
   BookStore_ZYM::debug_Print_Mutex.unlock();
 }
+
+void BlockingStringStream::lock() { custom_mutex.lock(); }
+void BlockingStringStream::unlock() { custom_mutex.unlock(); }
