@@ -22,5 +22,7 @@ class BookStoreBackEndClass {
   }
   ~BookStoreBackEndClass() { delete engine_ptr; }
   void Run();
+  void PostRequest(std::string SessionToken, std::string OperationToken,
+                   std::string AuthenticationKey, std::string cmd);
 };
 #endif  // PROTECTOR_SCHEDULE_H

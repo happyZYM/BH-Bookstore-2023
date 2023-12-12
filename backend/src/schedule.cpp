@@ -32,14 +32,20 @@ void BookStoreBackEndClass::Run() {
       (*output_ptr).readlock();
       (*output_ptr) << TempChannelID << " IinitialOpt 1\n"
                     << new_SessionToken << ' ' << new_AuthenticationKey << '\n';
-      // assert((*output_ptr).internalStream.peek() != EOF);
       (*output_ptr).unreadlock();
-      // assert((*output_ptr).is_writing == false);
-      // debugPrint("Sent Response Init");
     } else if (request_data[1] == 'C') {
       ;
     } else if (request_data[1] == '_') {
-      ;
+      std::stringstream ss(request_data);
+      std::string SessionToken;
+      std::string OperationToken;
+      std::string OuthenticationKey;
+      std::string cmd;
+      ss >> cmd >> SessionToken >> OperationToken >> OuthenticationKey;
+      (*output_ptr).readlock();
+      (*output_ptr) << SessionToken << ' ' << OperationToken << " 1\n"
+                    << "[Internal Error] This API shouldn't be called\n";
+      (*output_ptr).unreadlock();
     } else if (request_data[1] == 'S') {
       return;
     } else if (request_data[1] == 'R') {
@@ -51,17 +57,20 @@ void BookStoreBackEndClass::Run() {
       ss >> cmd >> SessionToken >> OperationToken >> OuthenticationKey;
       ss.get();
       std::getline(ss, cmd);
-      // debugPrint("SessionToken=", SessionToken,
-      //            " OperationToken=", OperationToken,
-      //            " OuthenticationKey=", OuthenticationKey, " cmd=", cmd);
-      (*output_ptr).readlock();
-      (*output_ptr) << SessionToken << ' ' << OperationToken << " 1\n"
-                    << cmd << '\n';
-      // assert((*output_ptr).internalStream.peek() != EOF);
-      (*output_ptr).unreadlock();
-      // assert((*output_ptr).is_writing == false);
-      // debugPrint("Sent Response id=", OperationToken);
-      // debugPrint(SessionToken, ' ', OperationToken, " 1\n", cmd);
+      PostRequest(SessionToken, OperationToken, OuthenticationKey, cmd);
     }
   }
+}
+
+void BookStoreBackEndClass::PostRequest(std::string SessionToken,
+                                        std::string OperationToken,
+                                        std::string AuthenticationKey,
+                                        std::string cmd) {
+  if (session_map[SessionToken].OuthorizationKey != AuthenticationKey) {
+    Respond(output_ptr, SessionToken, OperationToken, AuthenticationKey,
+            std::vector<std::string>({"[Error] AuthenticationKey is wrong"}));
+    return;
+  }
+  Respond(output_ptr, SessionToken, OperationToken, AuthenticationKey,
+          std::vector<std::string>({cmd}));
 }

@@ -63,3 +63,16 @@ void BlockingStringStream::unreadlock() {
   mutex.unlock();
   condition.notify_all();
 }
+
+void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
+             std::string OperationToken, std::string AuthenticationKey,
+             const std::vector<std::string> & ret) {
+  static std::mutex output_mutex;
+  output_mutex.lock();
+  (*output_ptr).readlock();
+  (*output_ptr) << SessionToken << ' ' << OperationToken << " " << ret.size()
+                << '\n';
+  for (int i = 0; i < ret.size(); i++) (*output_ptr) << ret[i] << '\n';
+  (*output_ptr).unreadlock();
+  output_mutex.unlock();
+}

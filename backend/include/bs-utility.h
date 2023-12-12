@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 class FatalError : public std::exception {
  public:
   FatalError(const char *__message, int __code)
@@ -104,4 +105,8 @@ void debugPrint(Args... args) {
   std::cerr << std::endl;
   BookStore_ZYM::debug_Print_Mutex.unlock();
 }
+
+void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
+             std::string OperationToken, std::string AuthenticationKey,
+             const std::vector<std::string> &ret);
 #endif  // PROTECTOR_UTILITY_H
