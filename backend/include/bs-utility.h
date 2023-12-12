@@ -65,7 +65,20 @@ BlockingStringStream &BlockingStringStream::operator>>(T &val) {
 
   return *this;
 }
+class ReadWriteLock {
+ private:
+  std::mutex mtx;
+  std::condition_variable cv;
+  int readers;
+  bool is_writing;
 
+ public:
+  ReadWriteLock();
+  void startRead();
+  void endRead();
+  void startWrite();
+  void endWrite();
+};
 class SessionClass {
   std::stack<int> login_stack;
   std::string SessionToken;
