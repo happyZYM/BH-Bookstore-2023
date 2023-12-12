@@ -96,7 +96,8 @@ class SessionClass {
 };
 namespace BookStore_ZYM {
 extern std::mutex debug_Print_Mutex;
-}
+extern bool shut_down;
+}  // namespace BookStore_ZYM
 void debugPrint();
 template <typename... Args>
 void debugPrint(Args... args) {

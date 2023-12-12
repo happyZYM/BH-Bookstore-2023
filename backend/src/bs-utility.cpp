@@ -45,7 +45,8 @@ void ReadWriteLock::endWrite() {
 }
 namespace BookStore_ZYM {
 std::mutex debug_Print_Mutex;
-}
+bool shut_down = false;
+}  // namespace BookStore_ZYM
 void debugPrint() {
   BookStore_ZYM::debug_Print_Mutex.lock();
   std::cerr << std::endl;
@@ -66,7 +67,7 @@ void BlockingStringStream::unreadlock() {
 
 void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
              std::string OperationToken, std::string AuthenticationKey,
-             const std::vector<std::string> & ret) {
+             const std::vector<std::string> &ret) {
   static std::mutex output_mutex;
   output_mutex.lock();
   (*output_ptr).readlock();
