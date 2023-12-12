@@ -90,7 +90,7 @@ class ReadWriteLock {
 };
 class SessionClass {
  public:
-  std::stack<int> login_stack;
+  std::stack<std::string> login_stack;
   std::string SessionToken;
   std::string OuthorizationKey;
 };

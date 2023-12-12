@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 #include "bs-utility.h"
 #include "engine.h"
@@ -16,11 +17,12 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     while (std::getline(std::cin, cmd)) {
       auto result = std::move(engine.Execute(cmd, login_stack));
       for (auto &line : result) {
-        std::cout << line << std::endl;
+        std::cout << line << '\n';
       }
       if (BookStore_ZYM::shut_down) return;
     }
   } else {
     throw FatalError("Not implemented yet", 1);
+    std::unordered_map<std::string, SessionClass> session_map;
   }
 }
