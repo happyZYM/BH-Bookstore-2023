@@ -5,10 +5,9 @@ BlockingStringStream &BlockingStringStream::getline(std::string &str,
   std::unique_lock<std::mutex> lock(mutex);
 
   // Wait until data is available
-  if (!(internalStream.peek() != EOF && !is_writing))
-    condition.wait(lock, [this] {
-      return internalStream.peek() != EOF && !is_writing;
-    });
+  condition.wait(lock, [this] {
+    return internalStream.peek() != EOF && !is_writing;
+  });
   str = "$FAILED$";
   std::getline(internalStream, str, delim);
 
@@ -53,8 +52,14 @@ void debugPrint() {
   BookStore_ZYM::debug_Print_Mutex.unlock();
 }
 
-void BlockingStringStream::readlock() { is_writing = true; }
+void BlockingStringStream::readlock() {
+  mutex.lock();
+  is_writing = true;
+  mutex.unlock();
+}
 void BlockingStringStream::unreadlock() {
+  mutex.lock();
   is_writing = false;
+  mutex.unlock();
   condition.notify_all();
 }

@@ -65,10 +65,9 @@ BlockingStringStream &BlockingStringStream::operator>>(T &val) {
   std::unique_lock<std::mutex> lock(mutex);
 
   // Wait until data is available
-  if (!(internalStream.peek() != EOF && !is_writing))
-    condition.wait(lock, [this] {
-      return internalStream.peek() != EOF && !is_writing;
-    });
+  condition.wait(lock, [this] {
+    return internalStream.peek() != EOF && !is_writing;
+  });
 
   internalStream >> val;
 
