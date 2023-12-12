@@ -11,6 +11,7 @@ class BookStoreBackEndClass {
   BlockingStringStream *output_ptr;
   BookStoreEngineClass *engine_ptr;
   std::unordered_map<std::string, SessionClass> session_map;
+  std::unordered_map<std::string, std::thread> worker_theads;
 
  public:
   BookStoreBackEndClass() = delete;
