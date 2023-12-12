@@ -7,27 +7,27 @@
 void test() {
   BlockingStringStream bss;
 
+  std::thread reader([&bss]() {
+    std::string data;
+    for (int i = 1; i <= 5; ++i) {
+      // Use getline with string delimiter
+      bss.getline(data, '\n');
+      std::cerr << "Received: " << data << std::endl;
+    }
+  });
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   std::thread writer([&bss]() {
     for (int i = 1; i <= 5; ++i) {
       bss << "Data " << i << '\n';
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
   });
-
-  std::thread reader([&bss]() {
-    std::string data;
-    for (int i = 1; i <= 5; ++i) {
-      // Use getline with string delimiter
-      bss.getline(data, '\n');
-      std::cout << "Received: " << data << std::endl;
-    }
-  });
   reader.join();
   writer.join();
 }
 int main(int argc, char **argv) {
-  test();
-  return 0;
+  // test();
+  // return 0;
   bool is_server = false;
   std::string config_dir = "";
   bool custom_config_dir = false;

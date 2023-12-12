@@ -5,6 +5,7 @@
 #include <exception>
 #include <mutex>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -42,7 +43,10 @@ template <typename T>
 BlockingStringStream &BlockingStringStream::operator<<(const T &val) {
   {
     std::lock_guard<std::mutex> lock(mutex);
-    if (internalStream.peek() == EOF) internalStream.clear();
+    if (internalStream.peek() == EOF) {
+      internalStream.clear();
+      internalStream.str("");
+    }
     internalStream << val;
   }
   condition.notify_one();
@@ -61,4 +65,10 @@ BlockingStringStream &BlockingStringStream::operator>>(T &val) {
 
   return *this;
 }
+
+class SessionClass {
+  std::stack<int> login_stack;
+  std::string SessionToken;
+  std::string OuthorizationKey;
+};
 #endif  // PROTECTOR_UTILITY_H
