@@ -1,6 +1,7 @@
 #ifndef PROTECTOR_SCHEDULE_H
 #define PROTECTOR_SCHEDULE_H
 #include <string>
+#include <unordered_map>
 
 #include "bs-utility.h"
 #include "engine.h"
@@ -9,6 +10,7 @@ class BookStoreBackEndClass {
   BlockingStringStream *input_ptr;
   BlockingStringStream *output_ptr;
   BookStoreEngineClass *engine_ptr;
+  std::unordered_map<std::string, SessionClass> session_map;
 
  public:
   BookStoreBackEndClass() = delete;

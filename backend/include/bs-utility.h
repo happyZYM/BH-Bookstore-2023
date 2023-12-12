@@ -1,8 +1,10 @@
 #ifndef PROTECTOR_UTILITY_H
 #define PROTECTOR_UTILITY_H
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <exception>
+#include <iostream>
 #include <mutex>
 #include <sstream>
 #include <stack>
@@ -69,8 +71,8 @@ class ReadWriteLock {
  private:
   std::mutex mtx;
   std::condition_variable cv;
-  int readers;
-  bool is_writing;
+  std::atomic<int> readers;
+  std::atomic<bool> is_writing;
 
  public:
   ReadWriteLock();
@@ -84,4 +86,15 @@ class SessionClass {
   std::string SessionToken;
   std::string OuthorizationKey;
 };
+namespace BookStore_ZYM {
+extern std::mutex debug_Print_Mutex;
+}
+void debugPrint();
+template <typename... Args>
+void debugPrint(Args... args) {
+  BookStore_ZYM::debug_Print_Mutex.lock();
+  ((std::cerr << args), ...);
+  std::cerr << std::endl;
+  BookStore_ZYM::debug_Print_Mutex.unlock();
+}
 #endif  // PROTECTOR_UTILITY_H

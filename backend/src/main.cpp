@@ -4,30 +4,57 @@
 #include "bs-utility.h"
 #include "builtin-cli.h"
 #include "clipp/clipp.h"
-void test() {
-  BlockingStringStream bss;
+ReadWriteLock rwLock;
+std::mutex mtx;
+void readerFunc(int id) {
+  while (true) {
+    rwLock.startRead();
+    debugPrint("Reader ", id, " is reading.");
+    std::this_thread::sleep_for(std::chrono::milliseconds(498));
+    debugPrint("Reader ", id, " end reading.");
+    rwLock.endRead();
 
-  std::thread reader([&bss]() {
-    std::string data;
-    for (int i = 1; i <= 5; ++i) {
-      // Use getline with string delimiter
-      bss.getline(data, '\n');
-      std::cerr << "Received: " << data << std::endl;
-    }
-  });
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-  std::thread writer([&bss]() {
-    for (int i = 1; i <= 5; ++i) {
-      bss << "Data " << i << '\n';
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-  });
-  reader.join();
-  writer.join();
+    // 模拟一些其他操作
+    std::this_thread::sleep_for(std::chrono::milliseconds(502));
+  }
+}
+
+void writerFunc(int id) {
+  while (true) {
+    rwLock.startWrite();
+    debugPrint("Writer ", id, " is writing.");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1005));
+    debugPrint("Writer ", id, " end writing.");
+    rwLock.endWrite();
+
+    // 模拟一些其他操作
+    std::this_thread::sleep_for(std::chrono::milliseconds(1013));
+  }
+}
+void test() {
+  std::thread readers[3];
+  std::thread writers[2];
+
+  for (int i = 0; i < 3; ++i) {
+    readers[i] = std::thread(readerFunc, i + 1);
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    writers[i] = std::thread(writerFunc, i + 1);
+  }
+
+  // 等待所有线程结束
+  for (int i = 0; i < 3; ++i) {
+    readers[i].join();
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    writers[i].join();
+  }
 }
 int main(int argc, char **argv) {
-  // test();
-  // return 0;
+  test();
+  return 0;
   bool is_server = false;
   std::string config_dir = "";
   bool custom_config_dir = false;

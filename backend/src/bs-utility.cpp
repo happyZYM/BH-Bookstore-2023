@@ -24,7 +24,7 @@ void ReadWriteLock::endRead() {
   std::unique_lock<std::mutex> lock(mtx);
   readers--;
   if (readers == 0) {
-    cv.notify_one();  // 唤醒一个等待的写操作
+    cv.notify_all();  // 唤醒一个等待的写操作
   }
 }
 
@@ -40,4 +40,12 @@ void ReadWriteLock::endWrite() {
   std::unique_lock<std::mutex> lock(mtx);
   is_writing = false;
   cv.notify_all();  // 唤醒所有等待的读操作和写操作
+}
+namespace BookStore_ZYM {
+std::mutex debug_Print_Mutex;
+}
+void debugPrint() {
+  BookStore_ZYM::debug_Print_Mutex.lock();
+  std::cerr << std::endl;
+  BookStore_ZYM::debug_Print_Mutex.unlock();
 }
