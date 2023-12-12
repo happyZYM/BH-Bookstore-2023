@@ -55,7 +55,7 @@ BlockingStringStream &BlockingStringStream::operator<<(const T &val) {
     }
     internalStream << val;
   }
-  condition.notify_one();
+  condition.notify_all();
   return *this;
 }
 

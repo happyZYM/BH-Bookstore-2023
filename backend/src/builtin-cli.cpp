@@ -18,8 +18,8 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     std::string SessionToken, AuthenticationKey, tmp;
     output.getline(tmp);
     output >> SessionToken >> AuthenticationKey;
-    debugPrint("SessionToken=", SessionToken,
-               " AuthenticationKey=", AuthenticationKey);
+    // debugPrint("SessionToken=", SessionToken,
+              //  " AuthenticationKey=", AuthenticationKey);
     std::string cmd;
     output.getline(tmp);
     while (getline(std::cin, cmd)) {
@@ -36,6 +36,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       input << "#Request " << SessionToken << " I-T-D" << ++cnt << " "
             << AuthenticationKey << ' ' << cmd << '\n';
       input.unreadlock();
+      // debugPrint("Sent Request ", cnt, " cmd=", cmd);
       std::string SessionToken;
       std::string OperationToken;
       int LineCounter;
@@ -47,7 +48,9 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       for (int i = 0; i < LineCounter; i++) {
         output.getline(tmp);
         std::cout << tmp << std::endl;
+        // std::cerr << tmp << std::endl;
       }
+      std::cout.flush();
     }
     input.readlock();
     input << "#CloseSession " << SessionToken << ' ' << AuthenticationKey

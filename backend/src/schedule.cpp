@@ -11,7 +11,7 @@ void BookStoreBackEndClass::Run() {
   std::mt19937 rnd(RndSeed);
   while (true) {
     input_ptr->getline(request_data, '\n');
-    debugPrint("request_data=", request_data);
+    // debugPrint("request_data=", request_data);
     if (request_data[1] == 'O')  // #OpenSession [TempChannelID]
     {
       std::stringstream ss;
@@ -37,7 +37,7 @@ void BookStoreBackEndClass::Run() {
     } else if (request_data[1] == '_') {
       ;
     } else if (request_data[1] == 'S') {
-      ;
+      return;
     } else if (request_data[1] == 'R') {
       std::stringstream ss(request_data);
       std::string SessionToken;
@@ -50,12 +50,11 @@ void BookStoreBackEndClass::Run() {
       // debugPrint("SessionToken=", SessionToken,
       //            " OperationToken=", OperationToken,
       //            " OuthenticationKey=", OuthenticationKey, " cmd=", cmd);
-      // std::cerr << "[]" << SessionToken << ' ' << OperationToken
-      //           << " 1\nECHO: " << cmd << '\n';
       (*output_ptr).readlock();
-      (*output_ptr) << SessionToken << ' ' << OperationToken
-                    << " 1\nECHO: " << cmd << '\n';
+      (*output_ptr) << SessionToken << ' ' << OperationToken << " 1\n"
+                    << cmd << '\n';
       (*output_ptr).unreadlock();
+      // debugPrint(SessionToken, ' ', OperationToken, " 1\n", cmd);
     }
   }
 }

@@ -8,7 +8,7 @@ BlockingStringStream &BlockingStringStream::getline(std::string &str,
   condition.wait(lock, [this] {
     return internalStream.peek() != EOF && !is_writing;
   });
-
+  str = "";
   std::getline(internalStream, str, delim);
 
   return *this;
@@ -53,4 +53,7 @@ void debugPrint() {
 }
 
 void BlockingStringStream::readlock() { is_writing = true; }
-void BlockingStringStream::unreadlock() { is_writing = false; }
+void BlockingStringStream::unreadlock() {
+  is_writing = false;
+  condition.notify_all();
+}
