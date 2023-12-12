@@ -1,5 +1,6 @@
 #include "schedule.h"
 
+#include <cassert>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -11,7 +12,7 @@ void BookStoreBackEndClass::Run() {
   std::mt19937 rnd(RndSeed);
   while (true) {
     input_ptr->getline(request_data, '\n');
-    // debugPrint("request_data=", request_data);
+    debugPrint("Get_request_data=", request_data);
     if (request_data[1] == 'O')  // #OpenSession [TempChannelID]
     {
       std::stringstream ss;
@@ -31,7 +32,10 @@ void BookStoreBackEndClass::Run() {
       (*output_ptr).readlock();
       (*output_ptr) << TempChannelID << " IinitialOpt 1\n"
                     << new_SessionToken << ' ' << new_AuthenticationKey << '\n';
+      assert((*output_ptr).internalStream.peek() != EOF);
       (*output_ptr).unreadlock();
+      assert((*output_ptr).is_writing == false);
+      debugPrint("Sent Response Init");
     } else if (request_data[1] == 'C') {
       ;
     } else if (request_data[1] == '_') {
@@ -53,7 +57,10 @@ void BookStoreBackEndClass::Run() {
       (*output_ptr).readlock();
       (*output_ptr) << SessionToken << ' ' << OperationToken << " 1\n"
                     << cmd << '\n';
+      assert((*output_ptr).internalStream.peek() != EOF);
       (*output_ptr).unreadlock();
+      assert((*output_ptr).is_writing == false);
+      debugPrint("Sent Response id=", OperationToken);
       // debugPrint(SessionToken, ' ', OperationToken, " 1\n", cmd);
     }
   }

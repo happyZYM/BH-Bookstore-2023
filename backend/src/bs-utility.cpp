@@ -5,10 +5,11 @@ BlockingStringStream &BlockingStringStream::getline(std::string &str,
   std::unique_lock<std::mutex> lock(mutex);
 
   // Wait until data is available
-  condition.wait(lock, [this] {
-    return internalStream.peek() != EOF && !is_writing;
-  });
-  str = "";
+  if (!(internalStream.peek() != EOF && !is_writing))
+    condition.wait(lock, [this] {
+      return internalStream.peek() != EOF && !is_writing;
+    });
+  str = "$FAILED$";
   std::getline(internalStream, str, delim);
 
   return *this;

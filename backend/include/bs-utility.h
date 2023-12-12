@@ -37,12 +37,12 @@ class BlockingStringStream {
   std::stringstream internalStream;
   void readlock();
   void unreadlock();
+  std::atomic<bool> is_writing = false;
 
  private:
   std::mutex mutex;
   std::mutex custom_mutex;
   std::condition_variable condition;
-  std::atomic<bool> is_writing = false;
 };
 // Implementation of operator<<
 template <typename T>
@@ -65,9 +65,10 @@ BlockingStringStream &BlockingStringStream::operator>>(T &val) {
   std::unique_lock<std::mutex> lock(mutex);
 
   // Wait until data is available
-  condition.wait(lock, [this] {
-    return internalStream.peek() != EOF && !is_writing;
-  });
+  if (!(internalStream.peek() != EOF && !is_writing))
+    condition.wait(lock, [this] {
+      return internalStream.peek() != EOF && !is_writing;
+    });
 
   internalStream >> val;
 

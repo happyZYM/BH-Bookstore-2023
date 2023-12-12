@@ -1,5 +1,6 @@
 #include "builtin-cli.h"
 
+#include <cassert>
 #include <iostream>
 
 #include "bs-utility.h"
@@ -19,7 +20,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     output.getline(tmp);
     output >> SessionToken >> AuthenticationKey;
     // debugPrint("SessionToken=", SessionToken,
-              //  " AuthenticationKey=", AuthenticationKey);
+    //  " AuthenticationKey=", AuthenticationKey);
     std::string cmd;
     output.getline(tmp);
     while (getline(std::cin, cmd)) {
@@ -35,12 +36,16 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       input.readlock();
       input << "#Request " << SessionToken << " I-T-D" << ++cnt << " "
             << AuthenticationKey << ' ' << cmd << '\n';
+      assert(input.internalStream.peek() != EOF);
       input.unreadlock();
-      // debugPrint("Sent Request ", cnt, " cmd=", cmd);
+      assert(input.is_writing == false);
+      debugPrint("Sent Request ", cnt, " cmd=", cmd);
       std::string SessionToken;
       std::string OperationToken;
       int LineCounter;
       output >> SessionToken >> OperationToken >> LineCounter;
+      debugPrint("Get the Head of response id=", OperationToken,
+                 " LineCounter=", LineCounter);
       // debugPrint("Get SessionToken=", SessionToken,
       //            " OperationToken=", OperationToken,
       //            " LineCounter=", LineCounter);
