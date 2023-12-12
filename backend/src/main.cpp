@@ -5,8 +5,6 @@
 #include "builtin-cli.h"
 #include "clipp/clipp.h"
 int main(int argc, char **argv) {
-  // test();
-  // return 0;
   bool is_server = false;
   std::string config_dir = "";
   bool custom_config_dir = false;

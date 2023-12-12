@@ -82,6 +82,7 @@ class ReadWriteLock {
   void endWrite();
 };
 class SessionClass {
+  public:
   std::stack<int> login_stack;
   std::string SessionToken;
   std::string OuthorizationKey;
