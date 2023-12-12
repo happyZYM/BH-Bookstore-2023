@@ -1,0 +1,7 @@
+set(PROJECT_NAME ${CMAKE_PROJECT_NAME})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-O2")
+set(ENV{MAKEFLAGS} "-j16")
+include_directories(${PROJECT_SOURCE_DIR}/external)
+add_executable(test-core test-core.cpp)
+target_precompile_headers(test-core PUBLIC ${PROJECT_SOURCE_DIR}/external/clipp/clipp.h ${PROJECT_SOURCE_DIR}/external/json/json.hpp)
