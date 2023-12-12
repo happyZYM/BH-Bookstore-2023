@@ -22,7 +22,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       if (BookStore_ZYM::shut_down) return;
     }
   } else {
-    throw FatalError("Not implemented yet", 1);
+    throw FatalError("Server mode has not been implemented yet", 1);
     std::unordered_map<std::string, SessionClass> session_map;
   }
 }

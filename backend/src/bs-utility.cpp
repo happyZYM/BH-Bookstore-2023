@@ -1,5 +1,10 @@
 #include "bs-utility.h"
 
+namespace BookStore_ZYM {
+std::mutex debug_Print_Mutex;
+bool shut_down = false;
+}  // namespace BookStore_ZYM
+
 BlockingStringStream &BlockingStringStream::getline(std::string &str,
                                                     char delim) {
   std::unique_lock<std::mutex> lock(mutex);
@@ -43,10 +48,7 @@ void ReadWriteLock::endWrite() {
   is_writing = false;
   cv.notify_all();  // 唤醒所有等待的读操作和写操作
 }
-namespace BookStore_ZYM {
-std::mutex debug_Print_Mutex;
-bool shut_down = false;
-}  // namespace BookStore_ZYM
+
 void debugPrint() {
   BookStore_ZYM::debug_Print_Mutex.lock();
   std::cerr << std::endl;

@@ -12,6 +12,12 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+namespace BookStore_ZYM {
+extern std::mutex debug_Print_Mutex;
+extern bool shut_down;
+}  // namespace BookStore_ZYM
+
 class FatalError : public std::exception {
  public:
   FatalError(const char *__message, int __code)
@@ -94,10 +100,7 @@ class SessionClass {
   std::string SessionToken;
   std::string OuthorizationKey;
 };
-namespace BookStore_ZYM {
-extern std::mutex debug_Print_Mutex;
-extern bool shut_down;
-}  // namespace BookStore_ZYM
+
 void debugPrint();
 template <typename... Args>
 void debugPrint(Args... args) {
@@ -110,4 +113,10 @@ void debugPrint(Args... args) {
 void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
              std::string OperationToken, std::string AuthenticationKey,
              const std::vector<std::string> &ret);
+
+class UserItemClass {
+ public:
+  char user_id[31], password[31], user_name[31];
+  unsigned char privilege;
+};
 #endif  // PROTECTOR_UTILITY_H
