@@ -28,8 +28,10 @@ void BookStoreBackEndClass::Run() {
       new_session.SessionToken = new_SessionToken;
       new_session.OuthorizationKey = new_AuthenticationKey;
       session_map[new_SessionToken] = new_session;
+      (*output_ptr).readlock();
       (*output_ptr) << TempChannelID << " IinitialOpt 1\n"
                     << new_SessionToken << ' ' << new_AuthenticationKey << '\n';
+      (*output_ptr).unreadlock();
     } else if (request_data[1] == 'C') {
       ;
     } else if (request_data[1] == '_') {
@@ -45,14 +47,15 @@ void BookStoreBackEndClass::Run() {
       ss >> cmd >> SessionToken >> OperationToken >> OuthenticationKey;
       ss.get();
       std::getline(ss, cmd);
-      debugPrint("SessionToken=", SessionToken,
-                 " OperationToken=", OperationToken,
-                 " OuthenticationKey=", OuthenticationKey, " cmd=", cmd);
-      // (*output_ptr) << SessionToken << ' ' << OperationToken << " 0\n";
-      (*output_ptr) << SessionToken << ' ' << OperationToken
-                    << " 1\nECHO: " << cmd << '\n';
+      // debugPrint("SessionToken=", SessionToken,
+      //            " OperationToken=", OperationToken,
+      //            " OuthenticationKey=", OuthenticationKey, " cmd=", cmd);
       // std::cerr << "[]" << SessionToken << ' ' << OperationToken
       //           << " 1\nECHO: " << cmd << '\n';
+      (*output_ptr).readlock();
+      (*output_ptr) << SessionToken << ' ' << OperationToken
+                    << " 1\nECHO: " << cmd << '\n';
+      (*output_ptr).unreadlock();
     }
   }
 }

@@ -7,40 +7,53 @@
 void BookStoreMain(bool is_server, std::string config_dir) {
   std::ios::sync_with_stdio(false);
   if (!is_server) {
+    int cnt = 0;
     BlockingStringStream input;
     BlockingStringStream output;
     BookStoreBackEndClass backend(config_dir, &input, &output);
     std::thread backend_thread([&backend]() { backend.Run(); });
+    input.readlock();
     input << "#OpenSession INNERCLI\n";
+    input.unreadlock();
     std::string SessionToken, AuthenticationKey, tmp;
     output.getline(tmp);
     output >> SessionToken >> AuthenticationKey;
     debugPrint("SessionToken=", SessionToken,
                " AuthenticationKey=", AuthenticationKey);
     std::string cmd;
+    output.getline(tmp);
     while (getline(std::cin, cmd)) {
       if (cmd == "quit" || cmd == "exit") {
+        input.readlock();
         input << "#CloseSession " << SessionToken << ' ' << AuthenticationKey
               << '\n';
         input << "#ShutDownSystem\n";
+        input.unreadlock();
         backend_thread.join();
         return;
       }
-      input << "#Request " << SessionToken << " I-T-D " << AuthenticationKey
-            << ' ' << cmd << '\n';
+      input.readlock();
+      input << "#Request " << SessionToken << " I-T-D" << ++cnt << " "
+            << AuthenticationKey << ' ' << cmd << '\n';
+      input.unreadlock();
       std::string SessionToken;
       std::string OperationToken;
       int LineCounter;
-      continue;
       output >> SessionToken >> OperationToken >> LineCounter;
+      // debugPrint("Get SessionToken=", SessionToken,
+      //            " OperationToken=", OperationToken,
+      //            " LineCounter=", LineCounter);
+      output.getline(tmp);
       for (int i = 0; i < LineCounter; i++) {
         output.getline(tmp);
         std::cout << tmp << std::endl;
       }
     }
+    input.readlock();
     input << "#CloseSession " << SessionToken << ' ' << AuthenticationKey
           << '\n';
     input << "#ShutDownSystem\n";
+    input.unreadlock();
     backend_thread.join();
     return;
   } else {
@@ -53,7 +66,9 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     std::thread input_thread([&input]() {
       std::string data;
       while (std::getline(std::cin, data)) {
+        input.readlock();
         input << data << '\n';
+        input.unreadlock();
       }
     });
     std::thread output_thread([&output]() {
