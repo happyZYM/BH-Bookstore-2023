@@ -6,7 +6,6 @@
 #include "bs-utility.h"
 #include "schedule.h"
 void BookStoreMain(bool is_server, std::string config_dir) {
-  std::ios::sync_with_stdio(false);
   if (!is_server) {
     int cnt = 0;
     BlockingStringStream input;
@@ -54,8 +53,9 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         output.getline(tmp);
         std::cout << tmp << std::endl;
         // std::cerr << tmp << std::endl;
+        debugPrint(tmp);
       }
-      std::cout.flush();
+      // std::cout.flush();
     }
     input.readlock();
     input << "#CloseSession " << SessionToken << ' ' << AuthenticationKey
@@ -65,6 +65,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     backend_thread.join();
     return;
   } else {
+    std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.rdbuf(nullptr);
     BlockingStringStream input;
