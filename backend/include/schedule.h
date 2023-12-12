@@ -1,5 +1,6 @@
 #ifndef PROTECTOR_SCHEDULE_H
 #define PROTECTOR_SCHEDULE_H
+#include <queue>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +12,7 @@ class BookStoreBackEndClass {
   BlockingStringStream *output_ptr;
   BookStoreEngineClass *engine_ptr;
   std::unordered_map<std::string, SessionClass> session_map;
-  std::unordered_map<std::string, std::thread> worker_theads;
+  std::unordered_map<std::string, std::queue<std::thread>> worker_theads_queue;
 
  public:
   BookStoreBackEndClass() = delete;
