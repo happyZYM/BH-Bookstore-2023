@@ -277,7 +277,10 @@ bool CommandBuyLexer(const std::string &command, std::string &ISBN,
     ISBN = "";
     quantity = 0;
     ss >> ISBN;
-    ss >> quantity;
+    long long quantity_tmp = 0;
+    ss >> quantity_tmp;
+    if (quantity_tmp > 2147483647) return false;
+    quantity = quantity_tmp;
     return true;
   } else
     return false;
@@ -388,7 +391,10 @@ bool CommandImportLexer(const std::string &command, int &quantity,
     ss >> token;
     quantity = 0;
     total_cost = 0;
-    ss >> quantity;
+    long long quantity_tmp = 0;
+    ss >> quantity_tmp;
+    if (quantity_tmp > 2147483647) return false;
+    quantity = quantity_tmp;
     ss >> total_cost;
     return true;
   } else
@@ -416,8 +422,10 @@ bool CommandShowfinanceLexer(const std::string &command, int &count) {
     std::stringstream ss(command);
     std::string token;
     ss >> token;
-    count = -1;
-    ss >> count;
+    long long count_tmp = -1;
+    ss >> count_tmp;
+    if (count_tmp > 2147483647) return false;
+    count = count_tmp;
     return true;
   } else
     return false;
