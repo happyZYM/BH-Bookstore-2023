@@ -14,6 +14,9 @@ BookStoreEngineClass::BookStoreEngineClass(std::string __config_dir,
   book_data_base.Open(config_dir + "book");
   log_data_base.Open(config_dir + "log");
   is_server = __is_server;
+  if (user_data_base.GetPrevilege("root") == -1) {
+    user_data_base.AddUser("root", "sjtu", "root", 7);
+  }
 }
 std::vector<std::string> BookStoreEngineClass::Execute(
     const std::string &cmd,
@@ -104,36 +107,87 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
   std::string user_id, password;
   if (!CommandSuLexer(cmd, user_id, password))
     return std::vector<std::string>({"Invalid"});
-  return std::vector<std::string>();
+  if (login_stack.size() > 0 &&
+      user_data_base.GetPrevilege(login_stack.top().first) == 7) {
+    if (user_data_base.GetPrevilege(user_id) == -1)
+      return std::vector<std::string>({"Invalid"});
+    login_stack.push(std::make_pair(user_id, ""));
+    return std::vector<std::string>();
+  }
+  if (user_data_base.PAM(user_id, password)) {
+    login_stack.push(std::make_pair(user_id, ""));
+    return std::vector<std::string>();
+  }
+  return std::vector<std::string>({"Invalid"});
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  if (login_stack.empty()) return std::vector<std::string>({"Invalid"});
+  login_stack.pop();
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  std::string user_id, password, user_name;
+  if (!CommandRegisterLexer(cmd, user_id, password, user_name))
+    return std::vector<std::string>({"Invalid"});
+  if (user_data_base.GetPrevilege(cmd) != -1)
+    return std::vector<std::string>({"Invalid"});
+  user_data_base.AddUser(user_id, password, user_name, 1);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  std::string user_id, current_password, new_password;
+  if (!CommandPasswdLexer(cmd, user_id, current_password, new_password))
+    return std::vector<std::string>({"Invalid"});
+  if (user_data_base.GetPrevilege(user_id) == -1)
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.size() > 0 &&
+      user_data_base.GetPrevilege(login_stack.top().first) == 7) {
+    user_data_base.ChangePassword(user_id, new_password);
+    return std::vector<std::string>();
+  }
+  if (!user_data_base.PAM(user_id, current_password))
+    return std::vector<std::string>({"Invalid"});
+  user_data_base.ChangePassword(user_id, new_password);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 3)
+    return std::vector<std::string>({"Invalid"});
+  std::string user_id, password, user_name;
+  int privilege;
+  if (!CommandUseraddLexer(cmd, user_id, password, privilege, user_name))
+    return std::vector<std::string>({"Invalid"});
+  if (user_data_base.GetPrevilege(user_id) != -1)
+    return std::vector<std::string>({"Invalid"});
+  user_data_base.AddUser(user_id, password, user_name, privilege);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 7)
+    return std::vector<std::string>({"Invalid"});
+  std::string user_id;
+  if (!CommandDeleteLexer(cmd, user_id))
+    return std::vector<std::string>({"Invalid"});
+  if (user_data_base.GetPrevilege(user_id) == -1)
+    return std::vector<std::string>({"Invalid"});
+  user_data_base.DeleteUser(user_id);
   return std::vector<std::string>();
 }
 
