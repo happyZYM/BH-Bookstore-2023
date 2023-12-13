@@ -19,11 +19,16 @@ class UserDataBase {
 class BookDataBase {
   DriveArray<BookItemClass> full_book_data;
   String2Index indexer;
-  String2Index keyword2index;
+
+ public:
+  void Open(std::string file_name);
 };
 class LogDataBase {
   DriveArray<FinanceItemClass> finance_data;
   DriveArray<OperationLogItemClass> operation_log_data;
+
+ public:
+  void Open(std::string file_name);
 };
 
 #endif  // PROTECTOR_DATABASE_HPP
