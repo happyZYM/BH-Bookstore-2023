@@ -22,7 +22,7 @@ class String2Index {
     /* Reference: http://xorshift.di.unimi.it/splitmix64.c */
     str = salt1 + str + salt2;
     hash_t ret = 0;
-    int i;
+    int i = 0;
     for (; i + 8 <= str.length(); i += 8) {
       ret ^= *reinterpret_cast<const hash_t *>(str.c_str() + i);
       ret ^= *reinterpret_cast<const hash_t *>(inner_salt + (i & 15));
@@ -46,10 +46,11 @@ class String2Index {
     hash_t main_hash, sub_hash;
     int val, nxt_idx = 0;
     Node() = default;
-    Node(std::string str, int _val)
-        : main_hash(Hash(str)),
-          sub_hash(Hash(sub_salt1 + str + sub_salt2)),
-          val(_val) {}
+    Node(std::string str, int _val) {
+      main_hash = Hash(str);
+      sub_hash = Hash(sub_salt1 + str + sub_salt2);
+      val = _val;
+    }
   };
 
   DriveArray<Node, kBucketSize, 100> mem;

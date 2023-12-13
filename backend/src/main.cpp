@@ -4,7 +4,17 @@
 #include "bs-utility.h"
 #include "builtin-cli.h"
 #include "clipp/clipp.h"
+// #include "key2index.hpp"
+// void test() {
+//   String2Index user_name2index;
+//   user_name2index.OpenFile("test.n2i");
+//   user_name2index.Insert("root", 1);
+//   auto vec=user_name2index.Find("root");
+//   std::cout<<vec.size()<<std::endl;
+// }
 int main(int argc, char **argv) {
+  // test();
+  // return 0;
   bool is_server = false;
   std::string config_dir = "";
   bool custom_config_dir = false;

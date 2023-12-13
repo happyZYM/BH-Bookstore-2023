@@ -15,7 +15,9 @@ BookStoreEngineClass::BookStoreEngineClass(std::string __config_dir,
   log_data_base.Open(config_dir + "log");
   is_server = __is_server;
   if (user_data_base.GetPrevilege("root") == -1) {
+    // debugPrint("Creating root user");
     user_data_base.AddUser("root", "sjtu", "root", 7);
+    // debugPrint("Now root's previlege is", user_data_base.GetPrevilege("root"));
   }
 }
 std::vector<std::string> BookStoreEngineClass::Execute(
@@ -114,6 +116,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
     login_stack.push(std::make_pair(user_id, ""));
     return std::vector<std::string>();
   }
+  // debugPrint("Examining", user_id, password);
   if (user_data_base.PAM(user_id, password)) {
     login_stack.push(std::make_pair(user_id, ""));
     return std::vector<std::string>();
@@ -163,13 +166,16 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
 std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
-  if (login_stack.empty() ||
-      user_data_base.GetPrevilege(login_stack.top().first) < 3)
+  int own_previlege = 0;
+  if (login_stack.size() > 0)
+    own_previlege = user_data_base.GetPrevilege(login_stack.top().first);
+  if (login_stack.empty() || own_previlege < 3)
     return std::vector<std::string>({"Invalid"});
   std::string user_id, password, user_name;
   int privilege;
   if (!CommandUseraddLexer(cmd, user_id, password, privilege, user_name))
     return std::vector<std::string>({"Invalid"});
+  if (privilege > own_previlege) return std::vector<std::string>({"Invalid"});
   if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, privilege);

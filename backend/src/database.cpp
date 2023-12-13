@@ -1,5 +1,6 @@
 #include "database.h"
 
+#include "bs-utility.h"
 void UserDataBase::Open(std::string file_name) {
   full_user_data.OpenFile(file_name + ".full");
   user_name2index.OpenFile(file_name + ".n2i");
@@ -17,15 +18,18 @@ void LogDataBase::Open(std::string file_name) {
 
 bool UserDataBase::PAM(const std::string &user_id,
                        const std::string &password) {
+  // debugPrint("PAM ", user_id, " ", password);
   auto ret = user_name2index.Find(user_id);
   if (ret.size() != 1) return false;
   UserItemClass tmp;
   full_user_data.read(tmp, ret[0]);
+  // debugPrint("Correct password: ", tmp.password, " Input password: ", password);
   return tmp.password == password;
 }
 
 int UserDataBase::GetPrevilege(const std::string &user_id) {
   auto ret = user_name2index.Find(user_id);
+  // debugPrint("size=", ret.size());
   if (ret.size() != 1) return -1;
   UserItemClass tmp;
   full_user_data.read(tmp, ret[0]);
@@ -42,6 +46,9 @@ void UserDataBase::AddUser(const std::string &user_id,
   tmp.privilege = privilege;
   int idx = full_user_data.write(tmp);
   user_name2index.Insert(user_id, idx);
+  // debugPrint("Add user: ", user_id, " ", password, " ", user_name, " ",
+  //            privilege);
+  // debugPrint("idx: ", idx);
 }
 
 void UserDataBase::DeleteUser(const std::string &user_id) {
