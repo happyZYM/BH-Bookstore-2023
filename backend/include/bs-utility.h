@@ -140,4 +140,21 @@ class OperationLogItemClass {
   char command[256];
   int fid;
 };
+
+enum OperationType {
+  __Ksu,
+  __Klogout,
+  __Kregister,
+  __Kpasswd,
+  __Kuseradd,
+  __Kdelete,
+  __Kshow,
+  __Kbuy,
+  __Kselect,
+  __Kmodify,
+  __Kimport,
+  __Kshowfinance,
+  __Klog,
+  __Kreport,
+};
 #endif  // PROTECTOR_UTILITY_H

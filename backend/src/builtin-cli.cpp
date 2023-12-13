@@ -9,7 +9,7 @@
 #include "bs-utility.h"
 #include "engine.h"
 void BookStoreMain(bool is_server, std::string config_dir) {
-  BookStoreEngineClass engine(config_dir);
+  BookStoreEngineClass engine(config_dir, is_server);
   std::ios::sync_with_stdio(false);
   if (!is_server) {
     std::stack<std::string> login_stack;
