@@ -23,16 +23,19 @@ class UserDataBase {
 };
 class BookDataBase {
   DriveArray<BookItemClass> full_book_data;
-  String2Index indexer;
+  String2Index ISBN2index, name2index, author2index, keyword2index;
 
  public:
   void Open(std::string file_name);
+  bool HaveISBN(const std::string &ISBN);
+  void CreateEmptyBook(const std::string &ISBN);
   void QueryBook(const std::string &ISBN, const std::string &name,
                  const std::string &author, const std::string &keyword,
                  std::vector<BookItemClass> &ret);
-  void ModifyInfo(const std::string &ISBN,const std::string &new_ISBN, const std::string &name,
-                  const std::string &author, const std::string &keyword,
-                  double price);
+  void ModifyInfo(const std::string &ISBN, const std::string &new_ISBN,
+                  const std::string &name, const std::string &author,
+                  const std::string &keyword, double price,
+                  int quantity_remain);
 };
 class LogDataBase {
   DriveArray<FinanceItemClass> finance_data;

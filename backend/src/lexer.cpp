@@ -361,8 +361,6 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
       } else
         return false;
     }
-    for (int i = 0; i < keyword.length(); i++)
-      if (keyword[i] == '|') return false;
     return true;
   } else
     return false;
@@ -431,4 +429,18 @@ bool CommandShowfinanceLexer(const std::string &command, int &count) {
     return true;
   } else
     return false;
+}
+
+bool KeyWordSpliter(const std::string &keyword, std::vector<std::string> &words) {
+  int current_beg = 0;
+  for (int i = 0; i < keyword.length(); i++) {
+    if (keyword[i] == '|') {
+      if (i == current_beg) return false;
+      words.push_back(keyword.substr(current_beg, i - current_beg));
+      current_beg = i + 1;
+    }
+  }
+  if (current_beg == keyword.length()) return false;
+  words.push_back(keyword.substr(current_beg, keyword.length() - current_beg));
+  return true;
 }
