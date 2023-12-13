@@ -17,12 +17,13 @@ class UserDataBase {
   bool PAM(const std::string &user_id, const std::string &password);
 };
 class BookDataBase {
-  ;
+  DriveArray<BookItemClass> full_book_data;
+  String2Index indexer;
+  String2Index keyword2index;
 };
-class FinanceDataBase {
-  ;
+class LogDataBase {
+  DriveArray<FinanceItemClass> finance_data;
+  DriveArray<OperationLogItemClass> operation_log_data;
 };
-class OperationLogDataBase {
-  ;
-};
+
 #endif  // PROTECTOR_DATABASE_HPP

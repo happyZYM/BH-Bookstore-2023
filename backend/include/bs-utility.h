@@ -119,4 +119,25 @@ class UserItemClass {
   char user_id[31], password[31], user_name[31];
   unsigned char privilege;
 };
+
+class BookItemClass {
+ public:
+  char ISBN[21], name[61], author[61], keyword[61];
+  double price;
+  int quantity_remain;
+};
+
+class FinanceItemClass {
+ public:
+  int book_id;
+  int quantity;
+  double total_price;
+};
+
+class OperationLogItemClass {
+ public:
+  char user_id[31];
+  char command[256];
+  int fid;
+};
 #endif  // PROTECTOR_UTILITY_H
