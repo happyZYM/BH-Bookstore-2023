@@ -184,7 +184,7 @@ class DriveArray {
       for (int i = 1; i < kDataPerBlock - 1; i++)
         blk_ptr->data[i].next_vacant_data_index = index + i + 1;
       blk_ptr->data[kDataPerBlock - 1].next_vacant_data_index = 0;
-      blk_ptr->data[0].next_vacant_data_index = 0;
+      blk_ptr->data[0].next_vacant_data_index = -1;
       // blk_ptr->data[0].val = t;
       std::memmove(&blk_ptr->data[0].val, &t, sizeofT);
       return index;
@@ -195,7 +195,7 @@ class DriveArray {
       int index = first_vacant_data_index;
       first_vacant_data_index =
           blk_ptr->data[inner_index - 1].next_vacant_data_index;
-      blk_ptr->data[inner_index - 1].next_vacant_data_index = 0;
+      blk_ptr->data[inner_index - 1].next_vacant_data_index = -1;
       // blk_ptr->data[inner_index - 1].val = t;
       std::memmove(&blk_ptr->data[inner_index - 1].val, &t, sizeofT);
       return index;
