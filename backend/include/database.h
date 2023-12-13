@@ -30,7 +30,7 @@ class BookDataBase {
   void QueryBook(const std::string &ISBN, const std::string &name,
                  const std::string &author, const std::string &keyword,
                  std::vector<BookItemClass> &ret);
-  void ModifyInfo(const std::string &ISBN, const std::string &name,
+  void ModifyInfo(const std::string &ISBN,const std::string &new_ISBN, const std::string &name,
                   const std::string &author, const std::string &keyword,
                   double price);
 };
