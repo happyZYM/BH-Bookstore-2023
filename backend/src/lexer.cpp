@@ -102,7 +102,7 @@ bool CommandRegisterLexer(const std::string &command, std::string &user_id,
 bool CommandPasswdLexer(const std::string &command, std::string &user_id,
                         std::string &old_password, std::string &new_password) {
   static std::basic_regex main_pattern(
-      R"(^ *passwd +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30})? +(?:[0-9a-zA-Z_]{1,30}) *$)",
+      R"(^ *passwd +(?:[0-9a-zA-Z_]{1,30})(?: +(?:[0-9a-zA-Z_]{1,30}))? +(?:[0-9a-zA-Z_]{1,30}) *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);

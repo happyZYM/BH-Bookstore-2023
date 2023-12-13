@@ -17,7 +17,8 @@ BookStoreEngineClass::BookStoreEngineClass(std::string __config_dir,
   if (user_data_base.GetPrevilege("root") == -1) {
     // debugPrint("Creating root user");
     user_data_base.AddUser("root", "sjtu", "root", 7);
-    // debugPrint("Now root's previlege is", user_data_base.GetPrevilege("root"));
+    // debugPrint("Now root's previlege is",
+    // user_data_base.GetPrevilege("root"));
   }
 }
 std::vector<std::string> BookStoreEngineClass::Execute(
@@ -150,8 +151,10 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
   std::string user_id, current_password, new_password;
   if (!CommandPasswdLexer(cmd, user_id, current_password, new_password))
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("sucessfully lexed passwd");
   if (user_data_base.GetPrevilege(user_id) == -1)
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("begin checing authority");
   if (login_stack.size() > 0 &&
       user_data_base.GetPrevilege(login_stack.top().first) == 7) {
     user_data_base.ChangePassword(user_id, new_password);
