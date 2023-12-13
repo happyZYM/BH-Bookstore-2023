@@ -45,6 +45,10 @@ std::vector<std::string> BookStoreEngineClass::Execute(
   std::string head = "";
   ss >> head;
   if (head == "quit" || head == "exit") {
+    while (login_stack.size()) {
+      login_count[login_stack.top().first]--;
+      login_stack.pop();
+    }
     if (!is_server) BookStore_ZYM::shut_down = true;
     return std::vector<std::string>();
   }
@@ -115,11 +119,13 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
     if (user_data_base.GetPrevilege(user_id) == -1)
       return std::vector<std::string>({"Invalid"});
     login_stack.push(std::make_pair(user_id, ""));
+    login_count[user_id]++;
     return std::vector<std::string>();
   }
   // debugPrint("Examining", user_id, password);
   if (user_data_base.PAM(user_id, password)) {
     login_stack.push(std::make_pair(user_id, ""));
+    login_count[user_id]++;
     return std::vector<std::string>();
   }
   return std::vector<std::string>({"Invalid"});
@@ -129,6 +135,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
   if (login_stack.empty()) return std::vector<std::string>({"Invalid"});
+  login_count[login_stack.top().first]--;
   login_stack.pop();
   return std::vector<std::string>();
 }
@@ -157,6 +164,10 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
   // debugPrint("begin checing authority");
   if (login_stack.size() > 0 &&
       user_data_base.GetPrevilege(login_stack.top().first) == 7) {
+    if (current_password != "") {
+      if (!user_data_base.PAM(user_id, current_password))
+        return std::vector<std::string>({"Invalid"});
+    }
     user_data_base.ChangePassword(user_id, new_password);
     return std::vector<std::string>();
   }
@@ -178,7 +189,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
   int privilege;
   if (!CommandUseraddLexer(cmd, user_id, password, privilege, user_name))
     return std::vector<std::string>({"Invalid"});
-  if (privilege > own_previlege) return std::vector<std::string>({"Invalid"});
+  if (privilege >= own_previlege) return std::vector<std::string>({"Invalid"});
   if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, privilege);
@@ -194,6 +205,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
   std::string user_id;
   if (!CommandDeleteLexer(cmd, user_id))
     return std::vector<std::string>({"Invalid"});
+  if (login_count[user_id] > 0) return std::vector<std::string>({"Invalid"});
   if (user_data_base.GetPrevilege(user_id) == -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.DeleteUser(user_id);
