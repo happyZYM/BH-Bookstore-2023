@@ -16,7 +16,8 @@ BookStoreEngineClass::BookStoreEngineClass(std::string __config_dir,
   is_server = __is_server;
 }
 std::vector<std::string> BookStoreEngineClass::Execute(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   for (int i = 0; i < cmd.length(); i++)
     if (std::isspace(cmd[i]) && cmd[i] != ' ')
       return std::vector<std::string>({"Invalid"});
@@ -87,11 +88,9 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       return ExecuteBuy(cmd, login_stack);
     }
     case OperationType::__Kreport: {
-      // throw FatalError("report Not implemented", 2);
       return ExecuteReport(cmd, login_stack);
     }
     case OperationType::__Klog: {
-      // throw FatalError("log Not implemented", 3);
       return ExecuteLog(cmd, login_stack);
     }
   }
@@ -100,71 +99,88 @@ std::vector<std::string> BookStoreEngineClass::Execute(
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteSu(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
+  std::string user_id, password;
+  if (!CommandSuLexer(cmd, user_id, password))
+    return std::vector<std::string>({"Invalid"});
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShow(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteBuy(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteSelect(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteImport(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLog(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteReport(
-    const std::string &cmd, std::stack<std::pair<std::string, std::string>> &login_stack) {
+    const std::string &cmd,
+    std::stack<std::pair<std::string, std::string>> &login_stack) {
   return std::vector<std::string>();
 }
