@@ -127,6 +127,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
   if (login_stack.size() > 0 &&
       user_data_base.GetPrevilege(login_stack.top().first) >
           user_data_base.GetPrevilege(user_id)) {
+    if (password != "" && !user_data_base.PAM(user_id, password))
+      return std::vector<std::string>({"Invalid"});
     // debugPrint("has root previlege");
     login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
