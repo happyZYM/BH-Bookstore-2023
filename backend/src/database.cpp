@@ -1,6 +1,7 @@
 #include "database.h"
 
 #include "bs-utility.h"
+#include "lexer.h"
 void UserDataBase::Open(std::string file_name) {
   full_user_data.OpenFile(file_name + ".full");
   user_name2index.OpenFile(file_name + ".n2i");
@@ -76,6 +77,14 @@ bool BookDataBase::HaveISBN(const std::string &ISBN) {
   auto ret = ISBN2index.Find(ISBN);
   return ret.size() == 1;
 }
+bool BookDataBase::HaveISBN(const std::string &ISBN, BookItemClass &ans) {
+  auto ret = ISBN2index.Find(ISBN);
+  if (ret.size() == 1) {
+    full_book_data.read(ans, ret[0]);
+    return true;
+  }
+  return false;
+}
 
 void BookDataBase::CreateEmptyBook(const std::string &ISBN) {
   BookItemClass tmp;
@@ -117,8 +126,15 @@ void BookDataBase::ModifyInfo(const std::string &ISBN,
     strcpy(tmp.author, author.c_str());
   }
   if (keyword != "") {
-    keyword2index.Delete(tmp.keyword, ret[0]);
-    keyword2index.Insert(keyword, ret[0]);
+    std::vector<std::string> keyword_vec;
+    KeyWordSpliter(tmp.keyword, keyword_vec, true);
+    for (auto &i : keyword_vec) {
+      keyword2index.Delete(i, ret[0]);
+    }
+    KeyWordSpliter(keyword, keyword_vec);
+    for (auto &i : keyword_vec) {
+      keyword2index.Insert(i, ret[0]);
+    }
     strcpy(tmp.keyword, keyword.c_str());
   }
   if (price >= 0) tmp.price = price;
@@ -131,5 +147,91 @@ void BookDataBase::QueryBook(const std::string &ISBN, const std::string &name,
                              const std::string &keyword,
                              std::vector<BookItemClass> &ret) {
   ret.clear();
-  if (ISBN == "" && name == "" && author == "" && keyword == "") return;
+  std::vector<BookItemClass> cache;
+  std::vector<unsigned char> valid;
+  if (ISBN == "" && name == "" && author == "" && keyword == "") {
+    full_book_data.FetchAll(ret);
+    /* sort by ISBN */
+    sort(ret.begin(), ret.end(),
+         [](const BookItemClass &a, const BookItemClass &b) {
+           return strcmp(a.ISBN, b.ISBN) < 0;
+         });
+    return;
+  }
+  bool first_ristrict = true;
+  if (ISBN != "") {
+    first_ristrict = false;
+    auto tmp = ISBN2index.Find(ISBN);
+    if (tmp.size() == 1) {
+      BookItemClass tmp_book;
+      full_book_data.read(tmp_book, tmp[0]);
+      cache.push_back(tmp_book);
+      valid.push_back(1);
+    }
+    if (tmp.size() > 1) throw FatalError("ISBN not unique", 7);
+  }
+  if (name != "") {
+    if (first_ristrict) {
+      first_ristrict = false;
+      auto tmp = name2index.Find(name);
+      for (auto &i : tmp) {
+        BookItemClass tmp_book;
+        full_book_data.read(tmp_book, i);
+        cache.push_back(tmp_book);
+        valid.push_back(1);
+      }
+    } else {
+      for (int i = 0; i < cache.size(); i++) {
+        if (!valid[i]) continue;
+        if (strcmp(cache[i].name, name.c_str()) != 0) {
+          valid[i] = 0;
+        }
+      }
+    }
+  }
+  if (author != "") {
+    if (first_ristrict) {
+      first_ristrict = false;
+      auto tmp = author2index.Find(author);
+      for (auto &i : tmp) {
+        BookItemClass tmp_book;
+        full_book_data.read(tmp_book, i);
+        cache.push_back(tmp_book);
+        valid.push_back(1);
+      }
+    } else {
+      for (int i = 0; i < cache.size(); i++) {
+        if (!valid[i]) continue;
+        if (strcmp(cache[i].author, author.c_str()) != 0) {
+          valid[i] = 0;
+        }
+      }
+    }
+  }
+  if (keyword != "") {
+    if (first_ristrict) {
+      first_ristrict = false;
+      auto tmp = keyword2index.Find(keyword);
+      for (auto &j : tmp) {
+        BookItemClass tmp_book;
+        full_book_data.read(tmp_book, j);
+        cache.push_back(tmp_book);
+        valid.push_back(1);
+      }
+    } else {
+      for (int i = 0; i < cache.size(); i++) {
+        if (!valid[i]) continue;
+        if (strcmp(cache[i].keyword, keyword.c_str()) != 0) {
+          valid[i] = 0;
+        }
+      }
+    }
+  }
+  for (int i = 0; i < cache.size(); i++) {
+    if (valid[i]) ret.push_back(cache[i]);
+  }
+  sort(ret.begin(), ret.end(),
+       [](const BookItemClass &a, const BookItemClass &b) {
+         return strcmp(a.ISBN, b.ISBN) < 0;
+       });
 }

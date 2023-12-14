@@ -226,6 +226,18 @@ class DriveArray {
         first_vacant_data_index;
     first_vacant_data_index = index;
   }
+
+  void FetchAll(std::vector<T> &vec) noexcept {
+    vec.clear();
+    for (int i = 1; i <= total_block_number; ++i) {
+      BlockType *blk_ptr = OrderBlock(i);
+      for (int j = 0; j < kDataPerBlock; ++j) {
+        if (blk_ptr->data[j].next_vacant_data_index == -1) {
+          vec.push_back(blk_ptr->data[j].val);
+        }
+      }
+    }
+  }
 };
 
 #endif  // PROTECTOR_DRIVEARRAY_HPP

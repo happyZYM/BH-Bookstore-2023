@@ -28,6 +28,7 @@ class BookDataBase {
  public:
   void Open(std::string file_name);
   bool HaveISBN(const std::string &ISBN);
+  bool HaveISBN(const std::string &ISBN,BookItemClass &ret);
   void CreateEmptyBook(const std::string &ISBN);
   void QueryBook(const std::string &ISBN, const std::string &name,
                  const std::string &author, const std::string &keyword,

@@ -346,7 +346,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
     name = "";
     author = "";
     keyword = "";
-    price = 0;
+    price = -1;
     while (ss >> token) {
       if (token[1] == 'I') {
         ISBN = token.substr(6);
@@ -431,7 +431,13 @@ bool CommandShowfinanceLexer(const std::string &command, int &count) {
     return false;
 }
 
-bool KeyWordSpliter(const std::string &keyword, std::vector<std::string> &words) {
+bool KeyWordSpliter(const std::string &keyword, std::vector<std::string> &words,
+                    bool allow_empty) {
+  words.clear();
+  if (keyword == "") {
+    if (!allow_empty) return false;
+    return true;
+  }
   int current_beg = 0;
   for (int i = 0; i < keyword.length(); i++) {
     if (keyword[i] == '|') {

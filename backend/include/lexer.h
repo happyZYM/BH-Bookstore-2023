@@ -27,5 +27,5 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
 bool CommandImportLexer(const std::string &command, int &quantity,
                         double &total_cost);
 bool CommandShowfinanceLexer(const std::string &command,int &count);
-bool KeyWordSpliter(const std::string &keyword, std::vector<std::string> &words);
+bool KeyWordSpliter(const std::string &keyword, std::vector<std::string> &words,bool allow_empty=false);
 #endif  // PROTECTOR_LEXER_H

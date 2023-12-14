@@ -4,6 +4,7 @@
 #include <stack>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "bs-utility.h"
 
@@ -135,6 +136,9 @@ std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
   if (login_stack.empty()) return std::vector<std::string>({"Invalid"});
+  if (user_data_base.GetPrevilege(login_stack.top().first) < 1) {
+    return std::vector<std::string>({"Invalid"});
+  }
   login_count[login_stack.top().first]--;
   login_stack.pop();
   return std::vector<std::string>();
@@ -159,7 +163,7 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
   if (!CommandPasswdLexer(cmd, user_id, current_password, new_password))
     return std::vector<std::string>({"Invalid"});
   // debugPrint("sucessfully lexed passwd");
-  if (user_data_base.GetPrevilege(user_id) == -1)
+  if (user_data_base.GetPrevilege(user_id) < 1)
     return std::vector<std::string>({"Invalid"});
   // debugPrint("begin checing authority");
   if (login_stack.size() > 0 &&
@@ -215,30 +219,126 @@ std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
 std::vector<std::string> BookStoreEngineClass::ExecuteShow(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
-  return std::vector<std::string>();
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 1)
+    return std::vector<std::string>({"Invalid"});
+  std::string ISBN, name, author, keyword;
+  if (!CommandShowLexer(cmd, ISBN, name, author, keyword))
+    return std::vector<std::string>({"Invalid"});
+  std::vector<BookItemClass> ret;
+  book_data_base.QueryBook(ISBN, name, author, keyword, ret);
+  if (ret.empty()) return std::vector<std::string>({""});
+  /* output format
+   * [ISBN]\t[BookName]\t[Author]\t[Keyword]\t[Price]\t[库存数量]\n */
+  std::vector<std::string> ans;
+  for (auto &i : ret) {
+    std::string tmp = i.ISBN;
+    tmp += '\t';
+    tmp += i.name;
+    tmp += '\t';
+    tmp += i.author;
+    tmp += '\t';
+    tmp += i.keyword;
+    tmp += '\t';
+    tmp += std::to_string(i.price);
+    tmp += '\t';
+    tmp += std::to_string(i.quantity_remain);
+    ans.push_back(tmp);
+  }
+  return ans;
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteBuy(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
-  return std::vector<std::string>();
+  std::string ISBN;
+  int quantity;
+  if (!CommandBuyLexer(cmd, ISBN, quantity))
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 1)
+    return std::vector<std::string>({"Invalid"});
+  BookItemClass tmp;
+  if (!book_data_base.HaveISBN(ISBN, tmp))
+    return std::vector<std::string>({"Invalid"});
+  if (quantity <= 0) return std::vector<std::string>({"Invalid"});
+  if (quantity > tmp.quantity_remain)
+    return std::vector<std::string>({"Invalid"});
+  book_data_base.ModifyInfo(ISBN, "", "", "", "", -1,
+                            tmp.quantity_remain - quantity);
+  /*浮点数输出购买图书所需的总金额，小数点后有且仅有两位小数*/
+  std::vector<std::string> ans;
+  unsigned long long cost_tmp = tmp.price * quantity * 100 + 0.5;
+  ans.push_back(std::to_string(cost_tmp / 100) + '.' +
+                std::to_string(cost_tmp % 100 / 10) +
+                std::to_string(cost_tmp % 10));
+  return ans;
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteSelect(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  std::string ISBN;
+  if (!CommandSelectLexer(cmd, ISBN))
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 3)
+    return std::vector<std::string>({"Invalid"});
+  if (!book_data_base.HaveISBN(ISBN)) book_data_base.CreateEmptyBook(ISBN);
+  std::pair<std::string, std::string> tmp;
+  tmp = login_stack.top();
+  login_stack.pop();
+  tmp.second = ISBN;
+  login_stack.push(tmp);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  std::string new_ISBN, name, author, keyword;
+  double price;
+  if (!CommandModifyLexer(cmd, new_ISBN, name, author, keyword, price))
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 3)
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.top().second == "" || login_stack.top().second == new_ISBN)
+    return std::vector<std::string>({"Invalid"});
+  if (keyword != "") {
+    std::vector<std::string> key_list;
+    if (!KeyWordSpliter(keyword, key_list, false))
+      return std::vector<std::string>({"Invalid"});
+    std::unordered_set<std::string> key_set;
+    for (auto &i : key_list) {
+      if (key_set.find(i) != key_set.end())
+        return std::vector<std::string>({"Invalid"});
+      key_set.insert(i);
+    }
+  }
+  book_data_base.ModifyInfo(login_stack.top().second, new_ISBN, name, author,
+                            keyword, price, -1);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteImport(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
+  int quantity;
+  double total_cost;
+  if (!CommandImportLexer(cmd, quantity, total_cost))
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 3)
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.top().second == "")
+    return std::vector<std::string>({"Invalid"});
+  if (quantity <= 0) return std::vector<std::string>({"Invalid"});
+  if (total_cost <= 0) return std::vector<std::string>({"Invalid"});
+  BookItemClass tmp;
+  book_data_base.HaveISBN(login_stack.top().second, tmp);
+  book_data_base.ModifyInfo(login_stack.top().second, "", "", "", "", -1,
+                            tmp.quantity_remain + quantity);
   return std::vector<std::string>();
 }
 
