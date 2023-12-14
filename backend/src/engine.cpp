@@ -24,7 +24,7 @@ BookStoreEngineClass::BookStoreEngineClass(std::string __config_dir,
 }
 std::vector<std::string> BookStoreEngineClass::Execute(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   for (int i = 0; i < cmd.length(); i++)
     if (std::isspace(cmd[i]) && cmd[i] != ' ')
       return std::vector<std::string>({"Invalid"});
@@ -111,7 +111,7 @@ std::vector<std::string> BookStoreEngineClass::Execute(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteSu(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string user_id, password;
   if (!CommandSuLexer(cmd, user_id, password))
     return std::vector<std::string>({"Invalid"});
@@ -121,13 +121,13 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
     // debugPrint("has root previlege");
     if (user_data_base.GetPrevilege(user_id) == -1)
       return std::vector<std::string>({"Invalid"});
-    login_stack.push(std::make_pair(user_id, ""));
+    login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
     return std::vector<std::string>();
   }
   // debugPrint("Examining", user_id, password);
   if (user_data_base.PAM(user_id, password)) {
-    login_stack.push(std::make_pair(user_id, ""));
+    login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
     return std::vector<std::string>();
   }
@@ -136,7 +136,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   if (login_stack.empty()) return std::vector<std::string>({"Invalid"});
   if (user_data_base.GetPrevilege(login_stack.top().first) < 1) {
     return std::vector<std::string>({"Invalid"});
@@ -148,7 +148,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string user_id, password, user_name;
   if (!CommandRegisterLexer(cmd, user_id, password, user_name))
     return std::vector<std::string>({"Invalid"});
@@ -160,7 +160,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
 
 std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string user_id, current_password, new_password;
   if (!CommandPasswdLexer(cmd, user_id, current_password, new_password))
     return std::vector<std::string>({"Invalid"});
@@ -185,7 +185,7 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   int own_previlege = 0;
   if (login_stack.size() > 0)
     own_previlege = user_data_base.GetPrevilege(login_stack.top().first);
@@ -204,7 +204,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 7)
     return std::vector<std::string>({"Invalid"});
@@ -220,7 +220,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShow(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 1)
     return std::vector<std::string>({"Invalid"});
@@ -255,7 +255,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteShow(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteBuy(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string ISBN;
   int quantity;
   if (!CommandBuyLexer(cmd, ISBN, quantity))
@@ -283,37 +283,44 @@ std::vector<std::string> BookStoreEngineClass::ExecuteBuy(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteSelect(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string ISBN;
   if (!CommandSelectLexer(cmd, ISBN))
     return std::vector<std::string>({"Invalid"});
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
-  if (!book_data_base.HaveISBN(ISBN)) book_data_base.CreateEmptyBook(ISBN);
-  std::pair<std::string, std::string> tmp;
+  BookItemClass BI_tmp;
+  if (!book_data_base.HaveISBN(ISBN, BI_tmp)) {
+    book_data_base.CreateEmptyBook(ISBN);
+    book_data_base.HaveISBN(ISBN, BI_tmp);
+  }
+  std::pair<std::string, int> tmp;
   tmp = login_stack.top();
   login_stack.pop();
-  tmp.second = ISBN;
+  tmp.second = BI_tmp.bid;
+  // debugPrint("selected bid=", tmp.second);
   login_stack.push(tmp);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   std::string new_ISBN, name, author, keyword;
   double price;
   if (!CommandModifyLexer(cmd, new_ISBN, name, author, keyword, price))
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully lexed modify");
   // debugPrint("modify", new_ISBN, ' ', name, ' ', author, ' ', keyword, ' ',
-  //  price);
+            //  price);
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully checked authority");
-  if (login_stack.top().second == "" || login_stack.top().second == new_ISBN)
+  // debugPrint("selected book's bid=", login_stack.top().second);
+  if (login_stack.top().second == 0 ||
+      book_data_base.GetISBN(login_stack.top().second) == new_ISBN)
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully checked ISBN");
   if (new_ISBN != "" && book_data_base.HaveISBN(new_ISBN))
@@ -330,21 +337,14 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
     }
   }
   // debugPrint("successfully checked keyword");
-  book_data_base.ModifyInfo(login_stack.top().second, new_ISBN, name, author,
-                            keyword, price, -1);
-  if (new_ISBN != "") {
-    std::pair<std::string, std::string> tmp;
-    tmp = login_stack.top();
-    login_stack.pop();
-    tmp.second = new_ISBN;
-    login_stack.push(tmp);
-  }
+  book_data_base.ModifyInfo(book_data_base.GetISBN(login_stack.top().second),
+                            new_ISBN, name, author, keyword, price, -1);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteImport(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   int quantity;
   double total_cost;
   if (!CommandImportLexer(cmd, quantity, total_cost))
@@ -352,21 +352,22 @@ std::vector<std::string> BookStoreEngineClass::ExecuteImport(
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
-  if (login_stack.top().second == "")
+  if (login_stack.top().second == 0)
     return std::vector<std::string>({"Invalid"});
   if (quantity <= 0) return std::vector<std::string>({"Invalid"});
   if (total_cost <= 0) return std::vector<std::string>({"Invalid"});
   BookItemClass tmp;
-  book_data_base.HaveISBN(login_stack.top().second, tmp);
-  book_data_base.ModifyInfo(login_stack.top().second, "", "", "", "", -1,
-                            tmp.quantity_remain + quantity);
+  book_data_base.HaveISBN(book_data_base.GetISBN(login_stack.top().second),
+                          tmp);
+  book_data_base.ModifyInfo(book_data_base.GetISBN(login_stack.top().second),
+                            "", "", "", "", -1, tmp.quantity_remain + quantity);
   log_data_base.AddImport(tmp.bid, quantity, total_cost);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   int count;
   if (!CommandShowfinanceLexer(cmd, count))
     return std::vector<std::string>({"Invalid"});
@@ -390,12 +391,12 @@ std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLog(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteReport(
     const std::string &cmd,
-    std::stack<std::pair<std::string, std::string>> &login_stack) {
+    std::stack<std::pair<std::string, int>> &login_stack) {
   return std::vector<std::string>();
 }

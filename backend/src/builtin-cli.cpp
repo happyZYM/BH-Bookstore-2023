@@ -13,7 +13,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
   BookStoreEngineClass engine(config_dir, is_server);
   std::ios::sync_with_stdio(false);
   if (!is_server) {
-    std::stack<std::pair<std::string, std::string>> login_stack;
+    std::stack<std::pair<std::string, int>> login_stack;
     std::string cmd;
     while (std::getline(std::cin, cmd)) {
       auto result = std::move(engine.Execute(cmd, login_stack));

@@ -96,6 +96,7 @@ void BookDataBase::CreateEmptyBook(const std::string &ISBN) {
   tmp.keyword[0] = 0;
   int idx = full_book_data.write(tmp);
   tmp.bid = idx;
+  // debugPrint("CreateEmptyBook: ", ISBN, " ", idx);
   full_book_data.update(tmp, idx);
   ISBN2index.Insert(ISBN, idx);
   name2index.Insert("", idx);
@@ -269,4 +270,10 @@ std::pair<double, double> LogDataBase::QueryFinance(int count) {
       total_import -= tmp.total_price;
   }
   return std::make_pair(total_sell, total_import);
+}
+
+std::string BookDataBase::GetISBN(int bid) {
+  BookItemClass tmp;
+  full_book_data.read(tmp, bid);
+  return std::string(tmp.ISBN);
 }

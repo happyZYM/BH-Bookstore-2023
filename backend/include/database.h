@@ -37,6 +37,7 @@ class BookDataBase {
                   const std::string &name, const std::string &author,
                   const std::string &keyword, double price,
                   int quantity_remain);
+  std::string GetISBN(int bid);
 };
 class LogDataBase {
   DriveArray<FinanceItemClass> finance_data;
