@@ -1,6 +1,7 @@
 #include "engine.h"
 
 #include <cctype>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -418,5 +419,18 @@ std::vector<std::string> BookStoreEngineClass::ExecuteReport(
       R"(^ *report( +finance| +employee) *$)", std::regex_constants::optimize);
   if (!std::regex_match(cmd, report_regex))
     return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 7)
+    return std::vector<std::string>({"Invalid"});
+  std::stringstream ss(cmd);
+  std::string token;
+  ss >> token;
+  ss >> token;
+  if (token == "finance") {
+    std::vector<std::string> ret;
+    log_data_base.GenaerateFinanceReport(config_dir + "finance_report", ret,
+                                         book_data_base);
+    return ret;
+  }
   return std::vector<std::string>();
 }

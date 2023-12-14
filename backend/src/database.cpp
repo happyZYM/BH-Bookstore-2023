@@ -1,5 +1,9 @@
 #include "database.h"
 
+#include <iomanip>
+#include <sstream>
+#include <unordered_map>
+
 #include "bs-utility.h"
 #include "lexer.h"
 void UserDataBase::Open(std::string file_name) {
@@ -270,6 +274,72 @@ std::pair<double, double> LogDataBase::QueryFinance(int count) {
       total_import -= tmp.total_price;
   }
   return std::make_pair(total_sell, total_import);
+}
+
+void LogDataBase::GenaerateFinanceReport(std::string file_name,
+                                         std::vector<std::string> &ret,
+                                         BookDataBase &book_data) {
+  ret.clear();
+  std::unordered_map<int, std::pair<double, double>>
+      bucket;  // classify by book_id
+  for (int i = 1; i <= finance_operation_count; i++) {
+    FinanceItemClass tmp;
+    finance_data.read(tmp, i);
+    if (tmp.total_price > 0) {
+      bucket[tmp.book_id].first += tmp.total_price;
+    } else {
+      bucket[tmp.book_id].second -= tmp.total_price;
+    }
+  }
+  std::vector<std::pair<int, std::pair<double, double>>> tmp;
+  for (auto &i : bucket) {
+    tmp.push_back(i);
+  }
+  // first, generate a table sorted by sales
+  sort(tmp.begin(), tmp.end(),
+       [](const std::pair<int, std::pair<double, double>> &a,
+          const std::pair<int, std::pair<double, double>> &b) {
+         return a.second.first > b.second.first;
+       });
+  ret.push_back("Sale Ranking:");
+  /**
+   * The format of each line is:
+   * [ISBN]\t[Name]\t+[Sales]\t-[Cost]
+   *
+   * note that Sales and Profit should have a precision of 2
+   */
+  for (auto &i : tmp) {
+    BookItemClass tmp_book;
+    book_data.full_book_data.read(tmp_book, i.first);
+    std::stringstream ss;
+    ss << "+" << std::fixed << std::setprecision(2) << i.second.first << "\t-"
+       << std::fixed << std::setprecision(2) << i.second.second;
+    ret.push_back(std::string(tmp_book.ISBN) + "\t" +
+                  std::string(tmp_book.name) + "\t" + ss.str());
+  }
+  // then, generate a table sorted by cost
+  sort(tmp.begin(), tmp.end(),
+       [](const std::pair<int, std::pair<double, double>> &a,
+          const std::pair<int, std::pair<double, double>> &b) {
+         return a.second.second > b.second.second;
+       });
+  ret.push_back("--------------------");
+  ret.push_back("Cost Ranking:");
+  /**
+   * The format of each line is:
+   * [ISBN]\t[Name]\t-[Cost]\t+[Sales]
+   *
+   * note that Cost and Profit should have a precision of 2
+   */
+  for (auto &i : tmp) {
+    BookItemClass tmp_book;
+    book_data.full_book_data.read(tmp_book, i.first);
+    std::stringstream ss;
+    ss << "-" << std::fixed << std::setprecision(2) << i.second.second << "\t+"
+       << std::fixed << std::setprecision(2) << i.second.first;
+    ret.push_back(std::string(tmp_book.ISBN) + "\t" +
+                  std::string(tmp_book.name) + "\t" + ss.str());
+  }
 }
 
 std::string BookDataBase::GetISBN(int bid) {

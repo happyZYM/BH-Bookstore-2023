@@ -22,10 +22,10 @@ class UserDataBase {
   void ChangePassword(const std::string &user_id, const std::string &password);
 };
 class BookDataBase {
-  DriveArray<BookItemClass> full_book_data;
   String2Index ISBN2index, name2index, author2index, keyword2index;
 
  public:
+  DriveArray<BookItemClass> full_book_data;
   void Open(std::string file_name);
   bool HaveISBN(const std::string &ISBN);
   bool HaveISBN(const std::string &ISBN, BookItemClass &ret);
@@ -50,7 +50,9 @@ class LogDataBase {
   void AddSell(int book_id, int quantity, double total_price);
   void AddImport(int book_id, int quantity, double total_price);
   std::pair<double, double> QueryFinance(int count = -1);
-  void QueryFinance(int count, std::vector<FinanceItemClass> &ret);
+  void GenaerateFinanceReport(std::string file_name,
+                              std::vector<std::string> &ret,
+                              BookDataBase &book_data);
   int TotalFinanceOperationCount() noexcept { return finance_operation_count; }
 };
 
