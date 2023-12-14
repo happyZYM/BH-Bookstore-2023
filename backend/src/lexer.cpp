@@ -347,18 +347,33 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
     author = "";
     keyword = "";
     price = -1;
+    bool has_ISBN = false;
+    bool has_name = false;
+    bool has_author = false;
+    bool has_keyword = false;
+    bool has_price = false;
     while (ss >> token) {
       if (token[1] == 'I') {
+        if (has_ISBN) return false;
+        has_ISBN = true;
         // debugPrint("ISBN's token is ", token);
         ISBN = token.substr(6);
       } else if (token[1] == 'n') {
+        if (has_name) return false;
+        has_name = true;
         name = token.substr(6 + 1, token.size() - 7 - 1);
       } else if (token[1] == 'a') {
+        if (has_author) return false;
+        has_author = true;
         author = token.substr(8 + 1, token.size() - 9 - 1);
       } else if (token[1] == 'k') {
+        if (has_keyword) return false;
+        has_keyword = true;
         keyword = token.substr(9 + 1, token.size() - 10 - 1);
         if (keyword.length() > 60) return false;
       } else if (token[1] == 'p') {
+        if (has_price) return false;
+        has_price = true;
         price = std::stod(token.substr(7));
       } else
         return false;
