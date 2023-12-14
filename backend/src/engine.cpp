@@ -314,6 +314,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
   if (login_stack.top().second == "" || login_stack.top().second == new_ISBN)
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully checked ISBN");
+  if (new_ISBN != "" && book_data_base.HaveISBN(new_ISBN))
+    return std::vector<std::string>({"Invalid"});
   if (keyword != "") {
     std::vector<std::string> key_list;
     if (!KeyWordSpliter(keyword, key_list, false))
