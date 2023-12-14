@@ -300,11 +300,16 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
   double price;
   if (!CommandModifyLexer(cmd, new_ISBN, name, author, keyword, price))
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("successfully lexed modify");
+  // debugPrint("modify", new_ISBN, ' ', name, ' ', author, ' ', keyword, ' ',
+            //  price);
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("successfully checked authority");
   if (login_stack.top().second == "" || login_stack.top().second == new_ISBN)
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("successfully checked ISBN");
   if (keyword != "") {
     std::vector<std::string> key_list;
     if (!KeyWordSpliter(keyword, key_list, false))
@@ -316,6 +321,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
       key_set.insert(i);
     }
   }
+  // debugPrint("successfully checked keyword");
   book_data_base.ModifyInfo(login_stack.top().second, new_ISBN, name, author,
                             keyword, price, -1);
   return std::vector<std::string>();

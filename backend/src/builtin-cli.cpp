@@ -17,10 +17,10 @@ void BookStoreMain(bool is_server, std::string config_dir) {
     std::string cmd;
     while (std::getline(std::cin, cmd)) {
       auto result = std::move(engine.Execute(cmd, login_stack));
-      // debugPrint(cmd);
+      debugPrint(cmd);
       for (auto &line : result) {
         std::cout << line << '\n';
-        // debugPrint(line);
+        debugPrint(line);
       }
       // debugPrint();
       if (BookStore_ZYM::shut_down) return;
