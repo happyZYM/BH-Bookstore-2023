@@ -171,7 +171,10 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
   if (!CommandPasswdLexer(cmd, user_id, current_password, new_password))
     return std::vector<std::string>({"Invalid"});
   // debugPrint("sucessfully lexed passwd");
-  if (user_data_base.GetPrevilege(user_id) < 1)
+  if (user_data_base.GetPrevilege(user_id) == -1)
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 1)
     return std::vector<std::string>({"Invalid"});
   // debugPrint("begin checing authority");
   if (login_stack.size() > 0 &&
