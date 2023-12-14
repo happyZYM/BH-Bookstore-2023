@@ -23,6 +23,7 @@ void LogDataBase::Open(std::string file_name) {
   finance_data.OpenFile(file_name + ".finance");
   finance_data.get_info(finance_operation_count, 1);
   operation_log_data.OpenFile(file_name + ".log");
+  operation_log_data.get_info(total_operation_count, 1);
 }
 
 bool UserDataBase::PAM(const std::string &user_id,
@@ -276,8 +277,7 @@ std::pair<double, double> LogDataBase::QueryFinance(int count) {
   return std::make_pair(total_sell, total_import);
 }
 
-void LogDataBase::GenaerateFinanceReport(std::string file_name,
-                                         std::vector<std::string> &ret,
+void LogDataBase::GenaerateFinanceReport(std::vector<std::string> &ret,
                                          BookDataBase &book_data) {
   ret.clear();
   std::unordered_map<int, std::pair<double, double>>
@@ -346,4 +346,54 @@ std::string BookDataBase::GetISBN(int bid) {
   BookItemClass tmp;
   full_book_data.read(tmp, bid);
   return std::string(tmp.ISBN);
+}
+
+void LogDataBase::AddOperationRecord(const std::string &user_id,
+                                     const std::string &cmd,
+                                     UserDataBase &user_data) {
+  OperationLogItemClass tmp;
+  strcpy(tmp.user_id, user_id.c_str());
+  std::stringstream ss(cmd);
+  std::string token;
+  while (ss >> token) ss << token << ' ';
+  strcpy(tmp.command, ss.str().c_str());
+  tmp.is_worker = false;
+  if (user_data.GetPrevilege(user_id) == 3) tmp.is_worker = true;
+  operation_log_data.write(tmp);
+  total_operation_count++;
+}
+
+void LogDataBase::FetchOperationRecord(std::vector<std::string> &ret,
+                                       bool worker_only) {
+  ret.clear();
+  if (!worker_only) {
+    for (int i = 1; i <= total_operation_count; i++) {
+      OperationLogItemClass tmp;
+      operation_log_data.read(tmp, i);
+      std::stringstream ss;
+      ss << std::setw(6) << std::setfill('0') << i << " " << tmp.user_id << " "
+         << tmp.command;
+      ret.push_back(ss.str());
+    }
+  } else {
+    // classify by worker
+    std::unordered_map<std::string, std::vector<std::string>> bucket;
+    std::unordered_map<std::string, int> bucket_counter;
+    for (int i = 1; i <= total_operation_count; i++) {
+      OperationLogItemClass tmp;
+      operation_log_data.read(tmp, i);
+      if (tmp.is_worker) {
+        std::stringstream ss;
+        ss << std::setw(6) << std::setfill('0') << ++bucket_counter[tmp.user_id]
+           << " " << tmp.user_id << " " << tmp.command;
+        bucket[tmp.user_id].push_back(ss.str());
+      }
+    }
+    for (auto &i : bucket) {
+      ret.push_back("---------- " + i.first + " ----------");
+      for (auto &j : i.second) {
+        ret.push_back(j);
+      }
+    }
+  }
 }

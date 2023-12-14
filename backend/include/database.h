@@ -43,17 +43,23 @@ class LogDataBase {
   DriveArray<FinanceItemClass> finance_data;
   DriveArray<OperationLogItemClass> operation_log_data;
   int finance_operation_count;
+  int total_operation_count;
 
  public:
-  ~LogDataBase() { finance_data.write_info(finance_operation_count, 1); }
+  ~LogDataBase() {
+    finance_data.write_info(finance_operation_count, 1);
+    operation_log_data.write_info(total_operation_count, 1);
+  }
   void Open(std::string file_name);
   void AddSell(int book_id, int quantity, double total_price);
   void AddImport(int book_id, int quantity, double total_price);
   std::pair<double, double> QueryFinance(int count = -1);
-  void GenaerateFinanceReport(std::string file_name,
-                              std::vector<std::string> &ret,
+  void GenaerateFinanceReport(std::vector<std::string> &ret,
                               BookDataBase &book_data);
   int TotalFinanceOperationCount() noexcept { return finance_operation_count; }
+  void AddOperationRecord(const std::string &user_id, const std::string &cmd,
+                          UserDataBase &user_data);
+  void FetchOperationRecord(std::vector<std::string> &ret, bool worker_only);
 };
 
 #endif  // PROTECTOR_DATABASE_HPP

@@ -47,6 +47,11 @@ std::vector<std::string> BookStoreEngineClass::Execute(
   std::string head = "";
   ss >> head;
   if (head == "quit" || head == "exit") {
+    if (!login_stack.empty())
+      log_data_base.AddOperationRecord(login_stack.top().first, cmd,
+                                       user_data_base);
+    else
+      log_data_base.AddOperationRecord("[nobody]", cmd, user_data_base);
     static std::basic_regex<char> quit_regex(R"(^ *(quit|exit) *$)",
                                              std::regex_constants::optimize);
     if (!std::regex_match(cmd, quit_regex))
@@ -63,6 +68,11 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       if (cmd[i] != ' ') return std::vector<std::string>({"Invalid"});
     return std::vector<std::string>();
   }
+  if (!login_stack.empty())
+    log_data_base.AddOperationRecord(login_stack.top().first, cmd,
+                                     user_data_base);
+  else
+    log_data_base.AddOperationRecord("[nobody]", cmd, user_data_base);
   switch (operation_map[head]) {
     case OperationType::__Ksu: {
       return ExecuteSu(cmd, login_stack);
@@ -409,7 +419,12 @@ std::vector<std::string> BookStoreEngineClass::ExecuteLog(
                                           std::regex_constants::optimize);
   if (!std::regex_match(cmd, log_regex))
     return std::vector<std::string>({"Invalid"});
-  return std::vector<std::string>();
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 7)
+    return std::vector<std::string>({"Invalid"});
+  std::vector<std::string> ret;
+  log_data_base.FetchOperationRecord(ret, false);
+  return ret;
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteReport(
@@ -428,8 +443,11 @@ std::vector<std::string> BookStoreEngineClass::ExecuteReport(
   ss >> token;
   if (token == "finance") {
     std::vector<std::string> ret;
-    log_data_base.GenaerateFinanceReport(config_dir + "finance_report", ret,
-                                         book_data_base);
+    log_data_base.GenaerateFinanceReport(ret, book_data_base);
+    return ret;
+  } else {
+    std::vector<std::string> ret;
+    log_data_base.FetchOperationRecord(ret, true);
     return ret;
   }
   return std::vector<std::string>();

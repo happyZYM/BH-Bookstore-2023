@@ -138,8 +138,8 @@ class FinanceItemClass {
 class OperationLogItemClass {
  public:
   char user_id[31];
-  char command[256];
-  int fid;
+  char command[400];
+  bool is_worker;
 };
 
 enum OperationType {
