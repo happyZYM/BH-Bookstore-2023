@@ -125,6 +125,7 @@ class BookItemClass {
   char ISBN[21], name[61], author[61], keyword[61];
   double price;
   int quantity_remain;
+  int bid;
 };
 
 class FinanceItemClass {

@@ -269,6 +269,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteBuy(
     return std::vector<std::string>({"Invalid"});
   book_data_base.ModifyInfo(ISBN, "", "", "", "", -1,
                             tmp.quantity_remain - quantity);
+  log_data_base.AddSell(tmp.bid, quantity, tmp.price * quantity);
   /*浮点数输出购买图书所需的总金额，小数点后有且仅有两位小数*/
   std::vector<std::string> ans;
   unsigned long long cost_tmp = tmp.price * quantity * 100 + 0.5;
@@ -355,13 +356,32 @@ std::vector<std::string> BookStoreEngineClass::ExecuteImport(
   book_data_base.HaveISBN(login_stack.top().second, tmp);
   book_data_base.ModifyInfo(login_stack.top().second, "", "", "", "", -1,
                             tmp.quantity_remain + quantity);
+  log_data_base.AddImport(tmp.bid, quantity, total_cost);
   return std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
     const std::string &cmd,
     std::stack<std::pair<std::string, std::string>> &login_stack) {
-  return std::vector<std::string>();
+  int count;
+  if (!CommandShowfinanceLexer(cmd, count))
+    return std::vector<std::string>({"Invalid"});
+  if (login_stack.empty() ||
+      user_data_base.GetPrevilege(login_stack.top().first) < 7)
+    return std::vector<std::string>({"Invalid"});
+  if (count > log_data_base.TotalFinanceOperationCount())
+    return std::vector<std::string>({"Invalid"});
+  if (count == 0) return std::vector<std::string>({""});
+  std::pair<double, double> ret = log_data_base.QueryFinance(count);
+  std::string ans;
+  unsigned long long income_tmp = ret.first * 100 + 0.5;
+  unsigned long long outcome_tmp = ret.second * 100 + 0.5;
+  ans =
+      "+ " + std::to_string(income_tmp / 100) + '.' +
+      std::to_string(income_tmp % 100 / 10) + std::to_string(income_tmp % 10) +
+      " - " + std::to_string(outcome_tmp / 100) + '.' +
+      std::to_string(outcome_tmp % 100 / 10) + std::to_string(outcome_tmp % 10);
+  return std::vector<std::string>({ans});
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteLog(

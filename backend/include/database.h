@@ -28,7 +28,7 @@ class BookDataBase {
  public:
   void Open(std::string file_name);
   bool HaveISBN(const std::string &ISBN);
-  bool HaveISBN(const std::string &ISBN,BookItemClass &ret);
+  bool HaveISBN(const std::string &ISBN, BookItemClass &ret);
   void CreateEmptyBook(const std::string &ISBN);
   void QueryBook(const std::string &ISBN, const std::string &name,
                  const std::string &author, const std::string &keyword,
@@ -41,10 +41,16 @@ class BookDataBase {
 class LogDataBase {
   DriveArray<FinanceItemClass> finance_data;
   DriveArray<OperationLogItemClass> operation_log_data;
+  int finance_operation_count;
 
  public:
+  ~LogDataBase() { finance_data.write_info(finance_operation_count, 1); }
   void Open(std::string file_name);
+  void AddSell(int book_id, int quantity, double total_price);
+  void AddImport(int book_id, int quantity, double total_price);
+  std::pair<double, double> QueryFinance(int count = -1);
   void QueryFinance(int count, std::vector<FinanceItemClass> &ret);
+  int TotalFinanceOperationCount() noexcept { return finance_operation_count; }
 };
 
 #endif  // PROTECTOR_DATABASE_HPP

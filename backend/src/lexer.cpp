@@ -424,6 +424,7 @@ bool CommandShowfinanceLexer(const std::string &command, int &count) {
     std::stringstream ss(command);
     std::string token;
     ss >> token;
+    ss >> token;
     long long count_tmp = -1;
     ss >> count_tmp;
     if (count_tmp > 2147483647) return false;

@@ -17,6 +17,7 @@ void BookDataBase::Open(std::string file_name) {
 
 void LogDataBase::Open(std::string file_name) {
   finance_data.OpenFile(file_name + ".finance");
+  finance_data.get_info(finance_operation_count, 1);
   operation_log_data.OpenFile(file_name + ".log");
 }
 
@@ -94,6 +95,8 @@ void BookDataBase::CreateEmptyBook(const std::string &ISBN) {
   tmp.author[0] = 0;
   tmp.keyword[0] = 0;
   int idx = full_book_data.write(tmp);
+  tmp.bid = idx;
+  full_book_data.update(tmp, idx);
   ISBN2index.Insert(ISBN, idx);
   name2index.Insert("", idx);
   author2index.Insert("", idx);
@@ -234,4 +237,36 @@ void BookDataBase::QueryBook(const std::string &ISBN, const std::string &name,
        [](const BookItemClass &a, const BookItemClass &b) {
          return strcmp(a.ISBN, b.ISBN) < 0;
        });
+}
+
+void LogDataBase::AddImport(int book_id, int quantity, double total_price) {
+  FinanceItemClass tmp;
+  tmp.book_id = book_id;
+  tmp.quantity = quantity;
+  tmp.total_price = -total_price;
+  finance_data.write(tmp);
+  finance_operation_count++;
+}
+
+void LogDataBase::AddSell(int book_id, int quantity, double total_price) {
+  FinanceItemClass tmp;
+  tmp.book_id = book_id;
+  tmp.quantity = quantity;
+  tmp.total_price = total_price;
+  finance_data.write(tmp);
+  finance_operation_count++;
+}
+
+std::pair<double, double> LogDataBase::QueryFinance(int count) {
+  double total_sell = 0, total_import = 0;
+  if (count == -1) count = finance_operation_count;
+  for (int i = 1; i <= count; i++) {
+    FinanceItemClass tmp;
+    finance_data.read(tmp, finance_operation_count + 1 - i);
+    if (tmp.total_price > 0)
+      total_sell += tmp.total_price;
+    else
+      total_import -= tmp.total_price;
+  }
+  return std::make_pair(total_sell, total_import);
 }
