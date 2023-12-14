@@ -18,7 +18,7 @@
 bool CommandSuLexer(const std::string &command, std::string &user_id,
                     std::string &password) {
   static std::basic_regex main_pattern(
-      R"(^ *su +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30})? *$)",
+      R"(^ *su +(?:[0-9a-zA-Z_]{1,30})(?: +[0-9a-zA-Z_]{1,30})? *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);

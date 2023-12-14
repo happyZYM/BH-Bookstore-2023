@@ -115,8 +115,10 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
   std::string user_id, password;
   if (!CommandSuLexer(cmd, user_id, password))
     return std::vector<std::string>({"Invalid"});
+  // debugPrint("su", user_id, " ", password);
   if (login_stack.size() > 0 &&
       user_data_base.GetPrevilege(login_stack.top().first) == 7) {
+    // debugPrint("has root previlege");
     if (user_data_base.GetPrevilege(user_id) == -1)
       return std::vector<std::string>({"Invalid"});
     login_stack.push(std::make_pair(user_id, ""));
