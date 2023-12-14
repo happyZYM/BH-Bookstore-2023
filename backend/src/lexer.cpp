@@ -357,6 +357,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
         author = token.substr(8 + 1, token.size() - 9 - 1);
       } else if (token[1] == 'k') {
         keyword = token.substr(9 + 1, token.size() - 10 - 1);
+        if (keyword.length() > 60) return false;
       } else if (token[1] == 'p') {
         price = std::stod(token.substr(7));
       } else
