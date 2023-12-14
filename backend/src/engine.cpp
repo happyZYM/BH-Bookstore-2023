@@ -240,7 +240,10 @@ std::vector<std::string> BookStoreEngineClass::ExecuteShow(
     tmp += '\t';
     tmp += i.keyword;
     tmp += '\t';
-    tmp += std::to_string(i.price);
+    unsigned long long price_tmp = i.price * 100;
+    tmp += std::to_string(price_tmp / 100) + "." +
+           std::to_string(price_tmp % 100 / 10) +
+           std::to_string(price_tmp % 10);
     tmp += '\t';
     tmp += std::to_string(i.quantity_remain);
     ans.push_back(tmp);
@@ -302,7 +305,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully lexed modify");
   // debugPrint("modify", new_ISBN, ' ', name, ' ', author, ' ', keyword, ' ',
-            //  price);
+  //  price);
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
@@ -324,6 +327,13 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
   // debugPrint("successfully checked keyword");
   book_data_base.ModifyInfo(login_stack.top().second, new_ISBN, name, author,
                             keyword, price, -1);
+  if (new_ISBN != "") {
+    std::pair<std::string, std::string> tmp;
+    tmp = login_stack.top();
+    login_stack.pop();
+    tmp.second = new_ISBN;
+    login_stack.push(tmp);
+  }
   return std::vector<std::string>();
 }
 
