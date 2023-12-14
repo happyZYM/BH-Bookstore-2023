@@ -161,7 +161,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
   std::string user_id, password, user_name;
   if (!CommandRegisterLexer(cmd, user_id, password, user_name))
     return std::vector<std::string>({"Invalid"});
-  if (user_data_base.GetPrevilege(cmd) != -1)
+  if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, 1);
   return std::vector<std::string>();
