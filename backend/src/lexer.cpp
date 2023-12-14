@@ -68,7 +68,7 @@ bool CommandLogoutLexer(const std::string &command) {
 bool CommandRegisterLexer(const std::string &command, std::string &user_id,
                           std::string &password, std::string &username) {
   static std::basic_regex main_pattern(
-      R"(^ *register +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30}) +(?:[^\s]{1,30}) *$)",
+      R"(^ *register +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30}) +(?:[!-~]{1,30}) *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
@@ -143,7 +143,7 @@ bool CommandUseraddLexer(const std::string &command, std::string &user_id,
                          std::string &password, int &privilege,
                          std::string &username) {
   static std::basic_regex main_pattern(
-      R"(^ *useradd +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30}) +[0-9] +(?:[^\s]{1,30}) *$)",
+      R"(^ *useradd +(?:[0-9a-zA-Z_]{1,30}) +(?:[0-9a-zA-Z_]{1,30}) +[0-9] +(?:[!-~]{1,30}) *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
