@@ -99,11 +99,11 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       return ExecuteBuy(cmd, login_stack);
     }
     case OperationType::__Kreport: {
-      return std::vector<std::string>({"Invalid"});
+      // return std::vector<std::string>({"Invalid"});
       return ExecuteReport(cmd, login_stack);
     }
     case OperationType::__Klog: {
-      return std::vector<std::string>({"Invalid"});
+      // return std::vector<std::string>({"Invalid"});
       return ExecuteLog(cmd, login_stack);
     }
   }
