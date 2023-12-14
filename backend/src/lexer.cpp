@@ -336,7 +336,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
                         std::string &name, std::string &author,
                         std::string &keyword, double &price) {
   static std::basic_regex main_pattern(
-      R"(^ *modify(?: +-ISBN=(?:[!-~]{1,20})| +-name=\"(?:[!#-~]{1,60})\"| +-author=\"(?:[!#-~]{1,60})\"| +-keyword=\"(?:[^\s"]{1,60})\"| +-price=[0-9]{1,10}(?:\.[0-9]+)?)+ *$)",
+      R"(^ *modify(?: +-ISBN=(?:[!-~]{1,20})| +-name=\"(?:[!#-~]{1,60})\"| +-author=\"(?:[!#-~]{1,60})\"| +-keyword=\"((?:[!#-{}~]{1,60}\|)*(?:[!#-{}~]{1,60}))\"| +-price=[0-9]{1,10}(?:\.[0-9]+)?)+ *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
