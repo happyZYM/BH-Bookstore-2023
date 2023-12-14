@@ -240,7 +240,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteShow(
     tmp += '\t';
     tmp += i.keyword;
     tmp += '\t';
-    unsigned long long price_tmp = i.price * 100;
+    unsigned long long price_tmp = i.price * 100 + 0.5;
     tmp += std::to_string(price_tmp / 100) + "." +
            std::to_string(price_tmp % 100 / 10) +
            std::to_string(price_tmp % 10);
