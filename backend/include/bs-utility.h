@@ -116,13 +116,13 @@ void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
 
 class UserItemClass {
  public:
-  char user_id[31], password[31], user_name[31];
+  char user_id[35], password[35], user_name[35];
   unsigned char privilege;
 };
 
 class BookItemClass {
  public:
-  char ISBN[21], name[61], author[61], keyword[61];
+  char ISBN[25], name[65], author[65], keyword[65];
   double price;
   int quantity_remain;
   int bid;

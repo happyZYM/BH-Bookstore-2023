@@ -157,8 +157,7 @@ bool CommandUseraddLexer(const std::string &command, std::string &user_id,
     ss >> password;
     ss >> privilege;
     ss >> username;
-    if (privilege != 0 && privilege != 1 && privilege != 3 && privilege != 7)
-      return false;
+    if (privilege != 1 && privilege != 3 && privilege != 7) return false;
     return true;
   } else
     return false;
@@ -212,7 +211,7 @@ bool CommandShowLexer(const std::string &command, std::string &ISBN,
                       std::string &name, std::string &author,
                       std::string &keyword) {
   static std::basic_regex main_pattern(
-      R"(^ *show(?: +-ISBN=(?:\S{1,20})| +-name=\"(?:[^\s"]{1,60})\"| +-author=\"(?:[^\s"]{1,60})\"| +-keyword=\"(?:[^\s"]{1,60})\")* *$)",
+      R"(^ *show(?: +-ISBN=(?:\S{1,20})| +-name=\"(?:[^\s"]{1,60})\"| +-author=\"(?:[^\s"]{1,60})\"| +-keyword=\"(?:[^\s"]{1,60})\")? *$)",
       std::regex_constants::optimize);
 
   bool has_ISBN = false;
@@ -337,7 +336,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
                         std::string &name, std::string &author,
                         std::string &keyword, double &price) {
   static std::basic_regex main_pattern(
-      R"(^ *modify(?: +-ISBN=(?:\S{1,20})| +-name=\"(?:[^\s"]{1,60})\"| +-author=\"(?:[^\s"]{1,60})\"| +-keyword=\"(?:[^\s"]{1,60})\"| +-price=[0-9]{1,10}(?:\.[0-9]{1,2})?)+ *$)",
+      R"(^ *modify(?: +-ISBN=(?:\S{1,20})| +-name=\"(?:[^\s"]{1,60})\"| +-author=\"(?:[^\s"]{1,60})\"| +-keyword=\"(?:[^\s"]{1,60})\"| +-price=[0-9]{1,10}(?:\.[0-9]+)?)+ *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
@@ -385,7 +384,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
 bool CommandImportLexer(const std::string &command, int &quantity,
                         double &total_cost) {
   static std::basic_regex main_pattern(
-      R"(^ *import +[0-9]{1,10} +[0-9]{1,10}(?:\.[0-9]{1,2})? *$)",
+      R"(^ *import +[0-9]{1,10} +[0-9]{1,10}(?:\.[0-9]+)? *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);

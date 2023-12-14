@@ -103,9 +103,11 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       return ExecuteBuy(cmd, login_stack);
     }
     case OperationType::__Kreport: {
+      // return std::vector<std::string>({"Invalid"});
       return ExecuteReport(cmd, login_stack);
     }
     case OperationType::__Klog: {
+      // return std::vector<std::string>({"Invalid"});
       return ExecuteLog(cmd, login_stack);
     }
   }
@@ -120,11 +122,14 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
   if (!CommandSuLexer(cmd, user_id, password))
     return std::vector<std::string>({"Invalid"});
   // debugPrint("su", user_id, " ", password);
+  if (user_data_base.GetPrevilege(user_id) == -1)
+    return std::vector<std::string>({"Invalid"});
   if (login_stack.size() > 0 &&
-      user_data_base.GetPrevilege(login_stack.top().first) == 7) {
-    // debugPrint("has root previlege");
-    if (user_data_base.GetPrevilege(user_id) == -1)
+      user_data_base.GetPrevilege(login_stack.top().first) >
+          user_data_base.GetPrevilege(user_id)) {
+    if (password != "" && !user_data_base.PAM(user_id, password))
       return std::vector<std::string>({"Invalid"});
+    // debugPrint("has root previlege");
     login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
     return std::vector<std::string>();
@@ -156,7 +161,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
   std::string user_id, password, user_name;
   if (!CommandRegisterLexer(cmd, user_id, password, user_name))
     return std::vector<std::string>({"Invalid"});
-  if (user_data_base.GetPrevilege(cmd) != -1)
+  if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, 1);
   return std::vector<std::string>();
