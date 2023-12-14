@@ -46,6 +46,10 @@ std::vector<std::string> BookStoreEngineClass::Execute(
   std::string head = "";
   ss >> head;
   if (head == "quit" || head == "exit") {
+    static std::basic_regex<char> quit_regex(R"(^ *(quit|exit) *$)",
+                                             std::regex_constants::optimize);
+    if (!std::regex_match(cmd, quit_regex))
+      return std::vector<std::string>({"Invalid"});
     while (login_stack.size()) {
       login_count[login_stack.top().first]--;
       login_stack.pop();
@@ -313,7 +317,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
     return std::vector<std::string>({"Invalid"});
   // debugPrint("successfully lexed modify");
   // debugPrint("modify", new_ISBN, ' ', name, ' ', author, ' ', keyword, ' ',
-            //  price);
+  //  price);
   if (login_stack.empty() ||
       user_data_base.GetPrevilege(login_stack.top().first) < 3)
     return std::vector<std::string>({"Invalid"});
@@ -392,9 +396,9 @@ std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
 std::vector<std::string> BookStoreEngineClass::ExecuteLog(
     const std::string &cmd,
     std::stack<std::pair<std::string, int>> &login_stack) {
-  static std::basic_regex<char> log_regex(
-      R"(^ *log *$)", std::regex_constants::optimize);
-  if(!std::regex_match(cmd, log_regex))
+  static std::basic_regex<char> log_regex(R"(^ *log *$)",
+                                          std::regex_constants::optimize);
+  if (!std::regex_match(cmd, log_regex))
     return std::vector<std::string>({"Invalid"});
   return std::vector<std::string>();
 }
