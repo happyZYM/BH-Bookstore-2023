@@ -157,8 +157,7 @@ bool CommandUseraddLexer(const std::string &command, std::string &user_id,
     ss >> password;
     ss >> privilege;
     ss >> username;
-    if (privilege != 0 && privilege != 1 && privilege != 3 && privilege != 7)
-      return false;
+    if (privilege != 1 && privilege != 3 && privilege != 7) return false;
     return true;
   } else
     return false;
