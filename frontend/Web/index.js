@@ -84,7 +84,7 @@ backend.stdout.on('data', (data) => {
       else{
         res_block=line+'\n';
         to_be_collect=parseInt(line.split(' ')[2]);
-        if(to_be_collect==0)
+        if(to_be_collect<=0)
         {
           const substrings = res_block.trim().split('\n')[0].split(' ');
           const session_token=substrings[0];

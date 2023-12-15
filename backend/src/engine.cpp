@@ -61,13 +61,13 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       login_stack.pop();
     }
     if (!is_server) BookStore_ZYM::shut_down = true;
-    return is_server ? std::vector<std::string>({"[Empty]"})
+    return is_server ? std::vector<std::string>({""})
                      : std::vector<std::string>();
   }
   if (operation_map.find(head) == operation_map.end()) {
     for (int i = 0; i < cmd.length(); i++)
       if (cmd[i] != ' ') return std::vector<std::string>({"Invalid"});
-    return is_server ? std::vector<std::string>({"[Empty]"})
+    return is_server ? std::vector<std::string>({""})
                      : std::vector<std::string>();
   }
   if (!login_stack.empty())
@@ -78,77 +78,77 @@ std::vector<std::string> BookStoreEngineClass::Execute(
   switch (operation_map[head]) {
     case OperationType::__Ksu: {
       auto ret = std::move(ExecuteSu(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Klogout: {
       auto ret = std::move(ExecuteLogout(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kuseradd: {
       auto ret = std::move(ExecuteUserAdd(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kregister: {
       auto ret = std::move(ExecuteRegister(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kdelete: {
       auto ret = std::move(ExecuteDelete(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kpasswd: {
       auto ret = std::move(ExecutePasswd(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kselect: {
       auto ret = std::move(ExecuteSelect(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kmodify: {
       auto ret = std::move(ExecuteMOdify(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kimport: {
       auto ret = std::move(ExecuteImport(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kshow: {
       ss >> head;
       if (head == "finance") goto dst_showfinance;
       auto ret = std::move(ExecuteShow(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kshowfinance: {
     dst_showfinance:;
       auto ret = std::move(ExecuteShowFinance(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kbuy: {
       auto ret = std::move(ExecuteBuy(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Kreport: {
       // return std::vector<std::string>({"Invalid"});
       auto ret = std::move(ExecuteReport(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
     case OperationType::__Klog: {
       // return std::vector<std::string>({"Invalid"});
       auto ret = std::move(ExecuteLog(cmd, login_stack));
-      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      if (is_server && ret.size() == 0) return std::vector<std::string>({""});
       return ret;
     }
   }
