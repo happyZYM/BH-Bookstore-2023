@@ -103,6 +103,9 @@ backend.stdout.on('data', (data) => {
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
 });
+app.get('/communication.js', (req, res) => {
+  res.sendFile(join(__dirname, 'communication.js'));
+});
 
 io.on('connection', async (socket) => {
   console.log('a user connected');
