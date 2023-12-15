@@ -81,3 +81,15 @@ async function Request(req)
     localStorage.setItem("operation_count", operation_count);
   }
 })();
+
+async function GetMyName()
+{
+  let ret = await RawRequest("#Who "+session_token+" InfoQuery "+outhentication_key);
+  return ret.split('\n')[1].split(' ')[0];
+}
+
+async function GetMyPrivilege()
+{
+  let ret = await RawRequest("#Who "+session_token+" InfoQuery "+outhentication_key);
+  return parseInt(ret.split('\n')[1].split(' ')[1]);
+}
