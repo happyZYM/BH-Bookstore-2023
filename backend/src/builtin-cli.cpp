@@ -65,7 +65,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         }
         if (session_map[session_token].login_stack.empty() ||
             session_map[session_token].login_stack.top().first != "root") {
-          std::cout << session_token << ' ' << operation_token << " -1"
+          std::cout << session_token << ' ' << operation_token << " 1\nInvalid"
                     << std::endl;
           std::cout.flush();
           continue;

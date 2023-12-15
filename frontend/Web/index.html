@@ -22,6 +22,9 @@
       }
       const socket = io();
       let __raw_response="";
+      let operation_count=localStorage.getItem("operation_count");
+      let session_token=localStorage.getItem("session_token");
+      let outhentication_key=localStorage.getItem("outhentication_key");
       socket.on('response', (msg) => {
         __raw_response=msg;
       });
@@ -40,12 +43,18 @@
           await sleep(100);
         }
       }
+      async function ShutDownWholeSystem()
+      {
+        await RawRequest("#ShutDownSystem "+session_token+" "+operation_count+" "+outhentication_key);
+        return "You Guess";
+      }
       async function Request(req)
       {
-        let operation_count=localStorage.getItem("operation_count");
-        let session_token=localStorage.getItem("session_token");
-        let outhentication_key=localStorage.getItem("outhentication_key");
+        operation_count=localStorage.getItem("operation_count");
+        session_token=localStorage.getItem("session_token");
+        outhentication_key=localStorage.getItem("outhentication_key");
         operation_count++;
+        localStorage.setItem("operation_count", operation_count);
         let raw_request="#Request "+session_token+" "+operation_count+" "+outhentication_key+"\n"+req;
         let raw_response=await RawRequest(raw_request);
         console.log("get raw_response:"+raw_response);
@@ -71,9 +80,6 @@
         localStorage.setItem("operation_count", operation_count);
         return response;
       }
-      let session_token=localStorage.getItem("session_token");
-      let outhentication_key=localStorage.getItem("outhentication_key");
-      let operation_count=localStorage.getItem("operation_count");
       (async () => {
         if(session_token==null||outhentication_key==null||operation_count==null){
           let tmp_channel=generateRandomString(10);
