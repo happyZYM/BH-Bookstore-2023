@@ -103,8 +103,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         }
         std::getline(std::cin, cmd);
         auto ret = std::move(
-            engine.ExecuteRegister(cmd,
-                                   session_map[session_token].login_stack));
+            engine.Execute(cmd, session_map[session_token].login_stack));
         std::cout << session_token << ' ' << operation_token << " "
                   << ret.size() << std::endl;
         for (auto &line : ret) std::cout << line << std::endl;

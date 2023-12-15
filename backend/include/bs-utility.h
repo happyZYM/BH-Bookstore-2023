@@ -99,6 +99,7 @@ class SessionClass {
   std::stack<std::pair<std::string, int>> login_stack;
   std::string SessionToken;
   std::string OuthorizationKey;
+  SessionClass() = default;
   SessionClass(std::string _SessionToken, std::string _OuthorizationKey)
       : SessionToken(_SessionToken), OuthorizationKey(_OuthorizationKey) {}
 };
