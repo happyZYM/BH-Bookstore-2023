@@ -452,3 +452,7 @@ std::vector<std::string> BookStoreEngineClass::ExecuteReport(
   }
   return std::vector<std::string>();
 }
+
+std::string BookStoreEngineClass::QueryUserInfo(const std::string &user_name) {
+  return user_name + std::to_string(user_data_base.GetPrevilege(user_name));
+}

@@ -1,5 +1,6 @@
 #include "bs-utility.h"
 
+#include <random>
 namespace BookStore_ZYM {
 std::mutex debug_Print_Mutex;
 bool shut_down = false;
@@ -78,4 +79,21 @@ void Respond(BlockingStringStream *output_ptr, std::string SessionToken,
   for (int i = 0; i < ret.size(); i++) (*output_ptr) << ret[i] << '\n';
   (*output_ptr).unreadlock();
   output_mutex.unlock();
+}
+
+std::string GenerateRandomString(int length) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_int_distribution<> dis(0, 61);
+  std::string ret;
+  for (int i = 0; i < length; i++) {
+    int x = dis(gen);
+    if (x < 10)
+      ret += '0' + x;
+    else if (x < 36)
+      ret += 'a' + x - 10;
+    else
+      ret += 'A' + x - 36;
+  }
+  return ret;
 }

@@ -18,6 +18,7 @@ class BookStoreEngineClass {
  public:
   BookStoreEngineClass() = delete;
   BookStoreEngineClass(std::string __config_dir, bool __is_server);
+  std::string QueryUserInfo(const std::string &user_name);
   std::vector<std::string> Execute(
       const std::string &cmd,
       std::stack<std::pair<std::string, int>> &login_stack);

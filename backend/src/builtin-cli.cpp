@@ -26,7 +26,89 @@ void BookStoreMain(bool is_server, std::string config_dir) {
       if (BookStore_ZYM::shut_down) return;
     }
   } else {
-    throw FatalError("Server mode has not been implemented yet", 1);
+    // throw FatalError("Server mode has not been implemented yet", 1);
     std::unordered_map<std::string, SessionClass> session_map;
+    std::string cmd;
+    while (std::getline(std::cin, cmd)) {
+      if (cmd[1] == 'O')  //`#OpenSession [TempChannelID]`
+      {
+        std::string new_session_token = GenerateRandomString(10);
+        std::string new_outh_token = GenerateRandomString(16);
+        session_map[new_session_token] =
+            SessionClass(new_session_token, new_outh_token);
+        std::stringstream ss(cmd);
+        std::string temp_channel_id;
+        ss >> temp_channel_id;
+        ss >> temp_channel_id;
+        std::cout << temp_channel_id << " Init 1\n"
+                  << new_session_token << ' ' << new_outh_token << std::endl;
+      } else if (cmd[1] == 'S')
+        return;
+      else if (cmd[1] == 'C') {
+        std::stringstream ss(cmd);
+        std::string session_token, operation_token, authentic_key;
+        ss >> session_token;
+        ss >> session_token >> operation_token >> authentic_key;
+        if (session_map.find(session_token) == session_map.end()) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        if (session_map[session_token].OuthorizationKey != authentic_key) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        session_map.erase(session_token);
+        std::cout << session_token << ' ' << operation_token << " 0"
+                  << std::endl;
+      } else if (cmd[1] == 'W') {
+        std::stringstream ss(cmd);
+        std::string session_token, operation_token, authentic_key;
+        ss >> session_token;
+        ss >> session_token >> operation_token >> authentic_key;
+        if (session_map.find(session_token) == session_map.end()) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        if (session_map[session_token].OuthorizationKey != authentic_key) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        if (session_map[session_token].login_stack.size())
+          std::cout << session_token << ' ' << operation_token << " 1\n"
+                    << engine.QueryUserInfo(
+                           session_map[session_token].login_stack.top().first)
+                    << std::endl;
+        else {
+          std::cout << session_token << ' ' << operation_token
+                    << " 1\n[nobody] -1" << std::endl;
+        }
+      } else if (cmd[1] == 'R') {
+        std::stringstream ss(cmd);
+        std::string session_token, operation_token, authentic_key;
+        ss >> session_token;
+        ss >> session_token >> operation_token >> authentic_key;
+        if (session_map.find(session_token) == session_map.end()) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        if (session_map[session_token].OuthorizationKey != authentic_key) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          continue;
+        }
+        std::getline(std::cin, cmd);
+        auto ret = std::move(
+            engine.ExecuteRegister(cmd,
+                                   session_map[session_token].login_stack));
+        std::cout << session_token << ' ' << operation_token << " "
+                  << ret.size() << std::endl;
+        for (auto &line : ret) std::cout << line << std::endl;
+      }
+    }
   }
 }

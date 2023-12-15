@@ -96,9 +96,11 @@ class ReadWriteLock {
 };
 class SessionClass {
  public:
-  std::stack<std::string> login_stack;
+  std::stack<std::pair<std::string, int>> login_stack;
   std::string SessionToken;
   std::string OuthorizationKey;
+  SessionClass(std::string _SessionToken, std::string _OuthorizationKey)
+      : SessionToken(_SessionToken), OuthorizationKey(_OuthorizationKey) {}
 };
 
 void debugPrint();
@@ -158,4 +160,6 @@ enum OperationType {
   __Klog,
   __Kreport,
 };
+
+std::string GenerateRandomString(int length);
 #endif  // PROTECTOR_UTILITY_H
