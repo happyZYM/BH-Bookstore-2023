@@ -93,3 +93,15 @@ async function GetMyPrivilege()
   let ret = await RawRequest("#Who "+session_token+" InfoQuery "+outhentication_key);
   return parseInt(ret.split('\n')[1].split(' ')[1]);
 }
+
+async function RefreshSession()
+{
+  let tmp_channel=generateRandomString(10);
+  let ret=await RawRequest('#OpenSession '+tmp_channel);
+  operation_count=0;
+  session_token=ret.split('\n')[1].split(' ')[0];
+  outhentication_key=ret.split('\n')[1].split(' ')[1];
+  localStorage.setItem("session_token", session_token);
+  localStorage.setItem("outhentication_key", outhentication_key);
+  localStorage.setItem("operation_count", operation_count);
+}
