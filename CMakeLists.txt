@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15.2)
 project(BookStore)
-set(CMAKE_CXX_FLAGS "-Ofast")
+set(CMAKE_CXX_FLAGS "-Ofast -std=c++17")
 file(GLOB_RECURSE main_src backend/src/*.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/backend/include)
 include_directories(${PROJECT_SOURCE_DIR}/external)

@@ -9,7 +9,7 @@ const io = new Server(server);
 
 const message_map=new Map();
 const { spawn } = require('child_process');
-const backend=spawn('/workspaces/BH-Bookstore-2023/build/code',['-s','-c','/tmp/conf/']);
+const backend=spawn(join(__dirname, '../../build/code'),['-s','-c',process.argv.slice(2)[0]]);
 
 const AsyncLock = require('async-lock');
 const lock = new AsyncLock();
