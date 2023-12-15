@@ -9,3 +9,6 @@
 - [需求分析文档](docs/develop/需求分析文档.md)
 - [总体设计文档](docs/develop/总体设计文档.md)
 - [开发文档](docs/develop/开发文档.md)
+
+## User Docs
+- [系统安装手册](docs/user/系统安装手册.md)
