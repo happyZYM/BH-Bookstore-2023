@@ -61,12 +61,14 @@ std::vector<std::string> BookStoreEngineClass::Execute(
       login_stack.pop();
     }
     if (!is_server) BookStore_ZYM::shut_down = true;
-    return std::vector<std::string>();
+    return is_server ? std::vector<std::string>({"[Empty]"})
+                     : std::vector<std::string>();
   }
   if (operation_map.find(head) == operation_map.end()) {
     for (int i = 0; i < cmd.length(); i++)
       if (cmd[i] != ' ') return std::vector<std::string>({"Invalid"});
-    return std::vector<std::string>();
+    return is_server ? std::vector<std::string>({"[Empty]"})
+                     : std::vector<std::string>();
   }
   if (!login_stack.empty())
     log_data_base.AddOperationRecord(login_stack.top().first, cmd,
@@ -75,51 +77,79 @@ std::vector<std::string> BookStoreEngineClass::Execute(
     log_data_base.AddOperationRecord("[nobody]", cmd, user_data_base);
   switch (operation_map[head]) {
     case OperationType::__Ksu: {
-      return ExecuteSu(cmd, login_stack);
+      auto ret = std::move(ExecuteSu(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Klogout: {
-      return ExecuteLogout(cmd, login_stack);
+      auto ret = std::move(ExecuteLogout(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kuseradd: {
-      return ExecuteUserAdd(cmd, login_stack);
+      auto ret = std::move(ExecuteUserAdd(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kregister: {
-      return ExecuteRegister(cmd, login_stack);
+      auto ret = std::move(ExecuteRegister(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kdelete: {
-      return ExecuteDelete(cmd, login_stack);
+      auto ret = std::move(ExecuteDelete(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kpasswd: {
-      return ExecutePasswd(cmd, login_stack);
+      auto ret = std::move(ExecutePasswd(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kselect: {
-      return ExecuteSelect(cmd, login_stack);
+      auto ret = std::move(ExecuteSelect(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kmodify: {
-      return ExecuteMOdify(cmd, login_stack);
+      auto ret = std::move(ExecuteMOdify(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kimport: {
-      return ExecuteImport(cmd, login_stack);
+      auto ret = std::move(ExecuteImport(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kshow: {
       ss >> head;
       if (head == "finance") goto dst_showfinance;
-      return ExecuteShow(cmd, login_stack);
+      auto ret = std::move(ExecuteShow(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kshowfinance: {
     dst_showfinance:;
-      return ExecuteShowFinance(cmd, login_stack);
+      auto ret = std::move(ExecuteShowFinance(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kbuy: {
-      return ExecuteBuy(cmd, login_stack);
+      auto ret = std::move(ExecuteBuy(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Kreport: {
       // return std::vector<std::string>({"Invalid"});
-      return ExecuteReport(cmd, login_stack);
+      auto ret = std::move(ExecuteReport(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
     case OperationType::__Klog: {
       // return std::vector<std::string>({"Invalid"});
-      return ExecuteLog(cmd, login_stack);
+      auto ret = std::move(ExecuteLog(cmd, login_stack));
+      if (is_server && ret.size() == 0) return std::vector<std::string>({"[Empty]"});
+      return ret;
     }
   }
   throw FatalError("Unknown Command", 5);
@@ -143,13 +173,15 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSu(
     // debugPrint("has root previlege");
     login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
-    return std::vector<std::string>();
+    return is_server ? std::vector<std::string>({""})
+                     : std::vector<std::string>();
   }
   // debugPrint("Examining", user_id, password);
   if (user_data_base.PAM(user_id, password)) {
     login_stack.push(std::make_pair(user_id, 0));
     login_count[user_id]++;
-    return std::vector<std::string>();
+    return is_server ? std::vector<std::string>({""})
+                     : std::vector<std::string>();
   }
   return std::vector<std::string>({"Invalid"});
 }
@@ -163,7 +195,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteLogout(
   }
   login_count[login_stack.top().first]--;
   login_stack.pop();
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
@@ -175,7 +208,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteRegister(
   if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, 1);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
@@ -198,12 +232,14 @@ std::vector<std::string> BookStoreEngineClass::ExecutePasswd(
         return std::vector<std::string>({"Invalid"});
     }
     user_data_base.ChangePassword(user_id, new_password);
-    return std::vector<std::string>();
+    return is_server ? std::vector<std::string>({""})
+                     : std::vector<std::string>();
   }
   if (!user_data_base.PAM(user_id, current_password))
     return std::vector<std::string>({"Invalid"});
   user_data_base.ChangePassword(user_id, new_password);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
@@ -222,7 +258,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteUserAdd(
   if (user_data_base.GetPrevilege(user_id) != -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.AddUser(user_id, password, user_name, privilege);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
@@ -238,7 +275,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteDelete(
   if (user_data_base.GetPrevilege(user_id) == -1)
     return std::vector<std::string>({"Invalid"});
   user_data_base.DeleteUser(user_id);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShow(
@@ -324,7 +362,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteSelect(
   tmp.second = BI_tmp.bid;
   // debugPrint("selected bid=", tmp.second);
   login_stack.push(tmp);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
@@ -362,7 +401,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteMOdify(
   // debugPrint("successfully checked keyword");
   book_data_base.ModifyInfo(book_data_base.GetISBN(login_stack.top().second),
                             new_ISBN, name, author, keyword, price, -1);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteImport(
@@ -385,7 +425,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteImport(
   book_data_base.ModifyInfo(book_data_base.GetISBN(login_stack.top().second),
                             "", "", "", "", -1, tmp.quantity_remain + quantity);
   log_data_base.AddImport(tmp.bid, quantity, total_cost);
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::vector<std::string> BookStoreEngineClass::ExecuteShowFinance(
@@ -450,7 +491,8 @@ std::vector<std::string> BookStoreEngineClass::ExecuteReport(
     log_data_base.FetchOperationRecord(ret, true);
     return ret;
   }
-  return std::vector<std::string>();
+  return is_server ? std::vector<std::string>({""})
+                   : std::vector<std::string>();
 }
 
 std::string BookStoreEngineClass::QueryUserInfo(const std::string &user_name) {

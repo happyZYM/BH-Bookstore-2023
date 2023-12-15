@@ -7,54 +7,71 @@
     </style>
   </head>
   <body>
-    <!-- <ul id="messages"></ul>
-    <form id="form" action="">
-      <textarea id="input" autocomplete="off" ></textarea><button id="submit_button" type="button">Send</button>
-    </form> -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
+      function generateRandomString(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+
+        return result;
+      }
       const socket = io();
-      // const form = document.getElementById('form');
-      // const input = document.getElementById('input');
-      // const messages = document.getElementById('messages');
-      // form.addEventListener("keydown", function(event) {
-      //   if (event.key === "Enter") {
-      //     event.stopPropagation();
-      //     console.log('enter triggered');
-      //     if (event.ctrlKey) {
-      //       console.log('ctrl triggered');
-      //       event.preventDefault();
-      //       if (input.value) {
-      //         socket.emit('request', input.value);
-      //         input.value = '';
-      //       }
-      //     } else {
-      //       console.log('ctrl not triggered');
-      //       event.preventDefault();
-      //       input.value=input.value;
-      //     }
-      //   }
-      // });
-      // form.addEventListener('submit', (e) => {
-      //   console.log('submit triggered');
-      //   e.preventDefault();
-      // });
-      // var button = document.getElementById("submit_button");
-      // button.addEventListener('click', function(e) {
-      //   e.preventDefault();
-      //   console.log('button triggered');
-      //   if (input.value) {
-      //     socket.emit('request', input.value);
-      //     input.value = '';
-      //   }
-      // });
+      let __raw_response="";
       socket.on('response', (msg) => {
-        console.log("Get response from sever: "+msg);
-        // const item = document.createElement('div');
-        // item.textContent = msg;
-        // messages.appendChild(item);
-        // window.scrollTo(0, document.body.scrollHeight);
+        __raw_response=msg;
       });
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+      async function RawRequest(raw_request){
+        socket.emit('request', raw_request);
+        while(true)
+        {
+          if(__raw_response!=""){
+            let response=__raw_response;
+            __raw_response="";
+            return response;
+          }
+          await sleep(100);
+        }
+      }
+      async function Request(req)
+      {
+        let operation_count=localStorage.getItem("operation_count");
+        let session_token=localStorage.getItem("session_token");
+        let outhentication_key=localStorage.getItem("outhentication_key");
+        operation_count++;
+        let raw_request="#Request "+session_token+" "+operation_count+" "+outhentication_key+"\n"+req;
+        let raw_response=await RawRequest(raw_request);
+        let line_numbers_of_res=parseInt(raw_response.split('\n')[0].split(' ')[2]);
+        let response="";
+        if(line_numbers_of_res>=1) response=raw_response.split('\n')[1];
+        for(let i=0;i<line_numbers_of_res-1;i++){
+          response+="\n"+raw_response.split('\n')[i+2];
+        }
+        localStorage.setItem("operation_count", operation_count);
+        return response;
+      }
+      let session_token=localStorage.getItem("session_token");
+      let outhentication_key=localStorage.getItem("outhentication_key");
+      let operation_count=localStorage.getItem("operation_count");
+      (async () => {
+        if(session_token==null||outhentication_key==null||operation_count==null){
+          let tmp_channel=generateRandomString(10);
+          let ret=await RawRequest('#OpenSession '+tmp_channel);
+          operation_count=0;
+          session_token=ret.split('\n')[1].split(' ')[0];
+          outhentication_key=ret.split('\n')[1].split(' ')[1];
+          localStorage.setItem("session_token", session_token);
+          localStorage.setItem("outhentication_key", outhentication_key);
+          localStorage.setItem("operation_count", operation_count);
+        }
+      })();
     </script>
   </body>
 </html>
