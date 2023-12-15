@@ -6,51 +6,6 @@ const { Server } = require('socket.io');
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
-class Queue {
-  constructor() {
-    this.items = [];
-  }
-
-  // 添加元素到队列的尾部
-  enqueue(element) {
-    this.items.push(element);
-  }
-
-  // 从队列的头部移除元素并返回移除的元素
-  dequeue() {
-    if (this.isEmpty()) {
-      return null;
-    }
-    return this.items.shift();
-  }
-
-  // 返回队列的头部元素
-  front() {
-    if (this.isEmpty()) {
-      return null;
-    }
-    return this.items[0];
-  }
-
-  // 检查队列是否为空
-  isEmpty() {
-    return this.items.length === 0;
-  }
-
-  // 返回队列的大小
-  size() {
-    return this.items.length;
-  }
-
-  // 清空队列
-  clear() {
-    this.items = [];
-  }
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 const message_map=new Map();
 const { spawn } = require('child_process');
@@ -59,7 +14,7 @@ const backend=spawn('/workspaces/BH-Bookstore-2023/build/code',['-s','-c','/tmp/
 const AsyncLock = require('async-lock');
 const lock = new AsyncLock();
 
-function SendRequest(data) {
+async function SendRequest(data) {
   console.log("SendRequest called");
   return new Promise((resolve, reject) => {
     lock.acquire('myLock', (done) => {
@@ -77,7 +32,11 @@ function SendRequest(data) {
   });
 }
 
-function GetResult(session_token,operation_token) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function GetResult(session_token,operation_token) {
   console.log("GetResult called");
   while(true)
   {
@@ -90,11 +49,13 @@ function GetResult(session_token,operation_token) {
         return ret;
       }
     }
-    sleep(100);
+    await sleep(100);
   }
 }
+
 let buffer = '';
-const response_queue=new Queue();
+let to_be_collect=0;
+let res_block="";
 backend.stdout.on('data', (data) => {
   console.log(`stdout: ${data}`);
   buffer += data.toString();
@@ -103,7 +64,39 @@ backend.stdout.on('data', (data) => {
       const line = buffer.slice(0, lineEnd);
       buffer = buffer.slice(lineEnd + 1);
       console.log(`C++ Program Output: ${line}`);
-      response_queue.enqueue(line);
+      if(to_be_collect>0)
+      {
+        res_block+=line+'\n';
+        to_be_collect--;
+        if(to_be_collect==0)
+        {
+          const substrings = res_block.trim().split('\n')[0].split(' ');
+          const session_token=substrings[0];
+          const operation_token=substrings[1];
+          console.log("session_token: "+session_token);
+          console.log("operation_token: "+operation_token);
+          console.log("ret: "+res_block);
+          if(!message_map.has(session_token)) message_map.set(session_token, new Map());
+          message_map.get(session_token).set(operation_token,res_block);
+          res_block="";
+        }
+      }
+      else{
+        res_block=line+'\n';
+        to_be_collect=parseInt(line.split(' ')[2]);
+        if(to_be_collect==0)
+        {
+          const substrings = res_block.trim().split('\n')[0].split(' ');
+          const session_token=substrings[0];
+          const operation_token=substrings[1];
+          console.log("session_token: "+session_token);
+          console.log("operation_token: "+operation_token);
+          console.log("ret: "+res_block);
+          if(!message_map.has(session_token)) message_map.set(session_token, new Map());
+          message_map.get(session_token).set(operation_token,res_block);
+          res_block="";
+        }
+      }
   }
 });
 // SendRequest("#OpenSession InnerTest")

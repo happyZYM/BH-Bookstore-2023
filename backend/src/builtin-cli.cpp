@@ -94,7 +94,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
           std::cout.flush();
         } else {
           std::cout << session_token << ' ' << operation_token
-                    << " 1\n[nobody] -1" << std::endl;
+                    << " 1\n[nobody] 0" << std::endl;
           std::cout.flush();
         }
       } else if (cmd[1] == 'R') {
