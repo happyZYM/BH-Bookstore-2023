@@ -113,12 +113,6 @@ io.on('connection', async (socket) => {
     console.log('message: ' + msg);
     const substrings = msg.trim().split('\n')[0].split(' ');
     const head=substrings[0];
-    if(head[1]=='S')
-    {
-      backend.stdin.write("#ShutDownSystem\n");
-      sleep(1000);
-      process.exit(0);
-    }
     const session_token=substrings[1];
     if(head[1]=='O')
     {
@@ -144,6 +138,17 @@ io.on('connection', async (socket) => {
       socket.emit('response', ret);
     }
   });
+});
+
+backend.on('exit', (code, signal) => {
+  if (code !== null) {
+    console.log(`子进程退出，退出码: ${code}`);
+  } else if (signal !== null) {
+    console.log(`子进程被信号中断，信号: ${signal}`);
+  } else {
+    console.log('子进程退出');
+  }
+  process.exit(0);
 });
 
 server.listen(3000, () => {

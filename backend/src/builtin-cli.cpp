@@ -46,9 +46,32 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         std::cout << temp_channel_id << " Init 1\n"
                   << new_session_token << ' ' << new_outh_token << std::endl;
         std::cout.flush();
-      } else if (cmd[1] == 'S')
+      } else if (cmd[1] == 'S') {
+        std::stringstream ss(cmd);
+        std::string session_token, operation_token, authentic_key;
+        ss >> session_token;
+        ss >> session_token >> operation_token >> authentic_key;
+        if (session_map.find(session_token) == session_map.end()) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          std::cout.flush();
+          continue;
+        }
+        if (session_map[session_token].OuthorizationKey != authentic_key) {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          std::cout.flush();
+          continue;
+        }
+        if (session_map[session_token].login_stack.empty() ||
+            session_map[session_token].login_stack.top().first != "root") {
+          std::cout << session_token << ' ' << operation_token << " -1"
+                    << std::endl;
+          std::cout.flush();
+          continue;
+        }
         return;
-      else if (cmd[1] == 'C') {
+      } else if (cmd[1] == 'C') {
         std::stringstream ss(cmd);
         std::string session_token, operation_token, authentic_key;
         ss >> session_token;
@@ -117,7 +140,7 @@ void BookStoreMain(bool is_server, std::string config_dir) {
         std::getline(std::cin, cmd);
         auto ret = std::move(
             engine.Execute(cmd, session_map[session_token].login_stack));
-        if(ret.empty()) ret.push_back("[empty]");
+        if (ret.empty()) ret.push_back("[empty]");
         std::cout << session_token << ' ' << operation_token << " "
                   << ret.size() << std::endl;
         for (auto &line : ret) std::cout << line << std::endl;
