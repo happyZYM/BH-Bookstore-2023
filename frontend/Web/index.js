@@ -154,6 +154,10 @@ backend.on('exit', (code, signal) => {
   process.exit(0);
 });
 
+app.get('/login', (req, res) => {
+  res.sendFile(join(__dirname, 'login.html'));
+});
+
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
 });
