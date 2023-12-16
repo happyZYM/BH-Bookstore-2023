@@ -131,8 +131,8 @@
         <div class="dropdown">
           <div class="dropdown-content">
             <a href="#">Login</a>
-            <a href="#">Logout</a>
-            <a href="#">Close Session</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); })();">Logout</a>
+            <a href="#" onclick="localStorage.removeItem('session_token'); localStorage.removeItem('outhentication_key'); localStorage.removeItem('operation_count'); window.close();">Close Session</a>
             <a href="#">Register</a>
             <a href="#">Change Password</a>
             <a href="#">Admin Panel</a>
@@ -149,7 +149,8 @@
     </nav>
     <div class="content">
       <!-- Your content goes here -->
-      <p>Content goes here</p>
+      <p>FBI warning: This is a homework demo, not a real bookstore system. Data privacy and safety is not guaranteed as any bug could happen.</p>
+      <p>User mannual can be found at <a href="https://github.com/happyZYM/BH-Bookstore-2023/" target="_blank">here</a></p>
     </div>
   </div>
 
