@@ -172,7 +172,6 @@
           <div class="dropdown-content">
             <a href="/login">Login</a>
             <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); })();">Logout</a>
-            <a href="#" onclick="localStorage.removeItem('session_token'); localStorage.removeItem('outhentication_key'); localStorage.removeItem('operation_count'); window.close();">Close Session</a>
             <a href="/register">Register</a>
             <a href="/passwd">Change Password</a>
             <a href="#">Admin Panel</a>
@@ -240,6 +239,12 @@
     }
     document.addEventListener('SessionReady', async () => {
       await UpdateUserInfo();
+      if((await GetMyPrivilege())<1)
+      {
+        document.querySelector('.passwd-box').style.display = 'none';
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        setTimeout(function(){window.location.href="/";},3000);
+      }
     });
     async function TryPasswd()
     {
@@ -260,14 +265,6 @@
         setTimeout(function(){window.location.href="/";},3000);
       }
     }
-    (async () => {
-      if((await GetMyPrivilege())<1)
-      {
-        document.querySelector('.passwd-box').style.display = 'none';
-        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
-        setTimeout(function(){window.location.href="/";},3000);
-      }
-    })();
   </script>
   <script src="/sessioninit.js"></script>
 </body>
