@@ -84,12 +84,16 @@ async function Request(req)
 
 async function GetMyName()
 {
+  session_token=localStorage.getItem("session_token");
+  outhentication_key=localStorage.getItem("outhentication_key");
   let ret = await RawRequest("#Who "+session_token+" InfoQuery "+outhentication_key);
   return ret.split('\n')[1].split(' ')[0];
 }
 
 async function GetMyPrivilege()
 {
+  session_token=localStorage.getItem("session_token");
+  outhentication_key=localStorage.getItem("outhentication_key");
   let ret = await RawRequest("#Who "+session_token+" InfoQuery "+outhentication_key);
   return parseInt(ret.split('\n')[1].split(' ')[1]);
 }

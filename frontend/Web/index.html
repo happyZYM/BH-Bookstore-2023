@@ -90,7 +90,7 @@
     }
 
     .main-content {
-      height: calc(100vh - 40px);
+      height: 80vh;
       display: flex;
     }
 
@@ -98,6 +98,7 @@
       width: 200px;
       background-color: #f4f4f4;
       padding: 20px;
+      height: 80vh;
     }
 
     nav a {
@@ -130,7 +131,7 @@
         <div class="action-button">Actions</div>
         <div class="dropdown">
           <div class="dropdown-content">
-            <a href="#">Login</a>
+            <a href="/login">Login</a>
             <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); })();">Logout</a>
             <a href="#" onclick="localStorage.removeItem('session_token'); localStorage.removeItem('outhentication_key'); localStorage.removeItem('operation_count'); window.close();">Close Session</a>
             <a href="#">Register</a>
