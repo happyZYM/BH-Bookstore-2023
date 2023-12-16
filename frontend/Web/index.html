@@ -135,7 +135,7 @@
             <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); })();">Logout</a>
             <a href="#" onclick="localStorage.removeItem('session_token'); localStorage.removeItem('outhentication_key'); localStorage.removeItem('operation_count'); window.close();">Close Session</a>
             <a href="/register">Register</a>
-            <a href="#">Change Password</a>
+            <a href="/passwd">Change Password</a>
             <a href="#">Admin Panel</a>
           </div>
         </div>
@@ -194,7 +194,9 @@
         ChangeUsername(nm+" [Admin]");
       }
     }
-    UpdateUserInfo();
+    document.addEventListener('SessionReady', async () => {
+      await UpdateUserInfo();
+    });
   </script>
 </body>
 </html>

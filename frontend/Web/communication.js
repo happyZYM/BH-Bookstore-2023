@@ -69,6 +69,8 @@ async function Request(req)
   localStorage.setItem("operation_count", operation_count);
   return response;
 }
+
+var SessionReadyEvent = new Event('SessionReady');
 (async () => {
   if(session_token==null||outhentication_key==null||operation_count==null){
     let tmp_channel=generateRandomString(10);
@@ -79,6 +81,7 @@ async function Request(req)
     localStorage.setItem("session_token", session_token);
     localStorage.setItem("outhentication_key", outhentication_key);
     localStorage.setItem("operation_count", operation_count);
+    document.dispatchEvent(SessionReadyEvent);
   }
 })();
 
