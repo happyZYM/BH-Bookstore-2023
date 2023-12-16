@@ -195,8 +195,10 @@
       }
     }
     document.addEventListener('SessionReady', async () => {
+      console.log("receive event session ready");
       await UpdateUserInfo();
     });
   </script>
+  <script src="/sessioninit.js"></script>
 </body>
 </html>

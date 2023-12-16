@@ -106,6 +106,9 @@ app.get('/', (req, res) => {
 app.get('/communication.js', (req, res) => {
   res.sendFile(join(__dirname, 'communication.js'));
 });
+app.get('/sessioninit.js', (req, res) => {
+  res.sendFile(join(__dirname, 'sessioninit.js'));
+});
 
 io.on('connection', async (socket) => {
   console.log('a user connected');
