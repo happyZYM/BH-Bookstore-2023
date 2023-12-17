@@ -169,6 +169,10 @@ app.get('/passwd', (req, res) => {
   res.sendFile(join(__dirname, 'passwd.html'));
 });
 
+app.get('/admin', (req, res) => {
+  res.sendFile(join(__dirname, 'admin.html'));
+});
+
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
 });

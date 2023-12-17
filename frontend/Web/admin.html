@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>register - ZYM's Book Store</title>
+  <title>Admin Panel - ZYM's Book Store</title>
   <style>
     body {
       margin: 0;
@@ -119,7 +119,7 @@
       flex: 1;
       padding: 20px;
     }
-    .register-box {
+    .passwd-box {
             width: 300px;
             padding: 20px;
             border: 1px solid #ccc;
@@ -187,14 +187,7 @@
       <a href="#">Purchase Books</a>
     </nav>
     <div class="content">
-      <div class="register-box">
-        <form onsubmit="console.log('trying register'); TryRegister(); return false;">
-            <input id="user_name" type="text" placeholder="Username" required>
-            <input id="password" type="password" placeholder="Password" required>
-            <input id="nickname" type="text" placeholder="Nickname" required>
-            <button type="submit">Register</button>
-        </form>
-    </div>
+      This is content.
     </div>
   </div>
 
@@ -239,26 +232,12 @@
     }
     document.addEventListener('SessionReady', async () => {
       await UpdateUserInfo();
-    });
-    async function TryRegister()
-    {
-      console.log("TryRegister called");
-      var username = document.getElementById("user_name").value;
-      var password = document.getElementById("password").value;
-      var nick_name = document.getElementById("nickname").value;
-      var ret=await Request("register "+username+" "+password+" "+nick_name);
-      if(ret=="Invalid")
+      if((await GetMyPrivilege())<3)
       {
-        alert("Invalid username or password");
-      }
-      else
-      {
-        // 删除注册框，在中间显示“注册成功”，三秒后自动跳转到首页
-        document.querySelector('.register-box').style.display = 'none';
-        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Register Success</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in as worker or root first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
-    }
+    });
   </script>
   <script src="/sessioninit.js"></script>
 </body>

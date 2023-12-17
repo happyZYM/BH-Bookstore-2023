@@ -132,10 +132,10 @@
         <div class="dropdown">
           <div class="dropdown-content">
             <a href="/login">Login</a>
-            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); })();">Logout</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); location.reload();})(); return false;">Logout</a>
             <a href="/register">Register</a>
             <a href="/passwd">Change Password</a>
-            <a href="#">Admin Panel</a>
+            <a href="/admin">Admin Panel</a>
           </div>
         </div>
       </div>
