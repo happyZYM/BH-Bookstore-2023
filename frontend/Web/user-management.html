@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UserManagement - Admin Panel - ZYM's Book Store</title>
+  <link rel="stylesheet" href="basic.css">
+  <style>
+    .info-box {
+      width: 300px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .user-management {
+  margin-top: 20px;
+}
+
+.user-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.user-form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.user-form input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.user-form button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.user-form button:hover {
+  background-color: #45a049;
+}
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ZYM's Book Store</h1>
+    <div class="user-bar">
+      <span>Welcome, <span id="username">[Guest]</span></span>
+      <div class="action-button-container" onmouseover="showDropdown()" onmouseout="hideDropdown()">
+        <div class="action-button">Actions</div>
+        <div class="dropdown">
+          <div class="dropdown-content">
+            <a href="/login">Login</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); location.reload();})(); return false;">Logout</a>
+            <a href="/register">Register</a>
+            <a href="/passwd">Change Password</a>
+            <a href="/admin">Admin Panel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <a href="/">Home Page</a>
+      <a href="/show">Search Books</a>
+      <a href="/buy">Purchase Books</a>
+    </nav>
+    <div class="content">
+      <div class="user-management">
+        <h2>User Management</h2>
+        <div class="user-form">
+          <label for="userId">User ID:</label>
+          <input type="text" id="userId" required>
+      
+          <label for="password">Password:</label>
+          <input type="password" id="password">
+      
+          <label for="privilege">Privilege:</label>
+          <input type="number" id="privilege">
+      
+          <label for="username">Username:</label>
+          <input type="text" id="username">
+      
+          <button onclick="addUser()">Add User</button>
+          <button onclick="deleteUser()">Delete User</button>
+        </div>
+      </div>      
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/communication.js"></script>
+  <script src="/basic.js"></script>
+  <script>
+    document.addEventListener('SessionReady', async () => {
+      await UpdateUserInfo();
+      if((await GetMyPrivilege())<3)
+      {
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in as worker or root first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        setTimeout(function(){window.location.href="/";},3000);
+      }
+    });
+    async function addUser()
+    {
+      var userId = document.getElementById("userId").value;
+      var password = document.getElementById("password").value;
+      var privilege = document.getElementById("privilege").value;
+      var username = document.getElementById("username").value;
+      if(userId=="" || password=="" || privilege=="" || username=="")
+      {
+        alert("Please fill in all fields.");
+        return;
+      }
+      if(privilege!=1&&privilege!=3&&privilege!=7)
+      {
+        alert("Invalid privilege.");
+        return;
+      }
+      if(!confirm("Are you sure to add this user?"))
+        return;
+      var result = await Request('useradd '+userId+' '+password+' '+privilege+' '+username);
+      if(result=="[empty]")
+      {
+        document.getElementById("userId").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("privilege").value = "";
+        document.getElementById("username").value = "";
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Successfully added user</h2><p>Auto refreshing page in 5 seconds...</p></div>';
+        setTimeout(function(){location.reload();},5000);
+      }
+      else
+        alert("Failed to add user");
+    }
+    async function deleteUser()
+    {
+      var userId = document.getElementById("userId").value;
+      if(userId=="")
+      {
+        alert("Please fill in user ID.");
+        return;
+      }
+      if(!confirm("Are you sure to delete this user?"))
+        return;
+      // confirm again
+      if(!confirm("Are you REALLY sure to delete this user?"))
+        return;
+      var result = await Request('delete '+userId);
+      if(result=="[empty]")
+      {
+        document.getElementById("userId").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("privilege").value = "";
+        document.getElementById("username").value = "";
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Successfully deleted user</h2><p>Auto refreshing page in 5 seconds...</p></div>';
+        setTimeout(function(){location.reload();},5000);
+      }
+      else
+        alert("Failed to delete user");
+    }
+  </script>
+  <script src="/sessioninit.js"></script>
+</body>
+</html>
