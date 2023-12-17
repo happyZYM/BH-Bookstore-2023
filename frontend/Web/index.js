@@ -199,6 +199,10 @@ app.get('/buy', (req, res) => {
   res.sendFile(join(__dirname, 'buy.html'));
 });
 
+app.get('/show', (req, res) => {
+  res.sendFile(join(__dirname, 'show.html'));
+});
+
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
 });

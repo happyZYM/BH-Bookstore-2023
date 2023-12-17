@@ -70,7 +70,7 @@
   <div class="main-content">
     <nav>
       <a href="/">Home Page</a>
-      <a href="#">Search Books</a>
+      <a href="/show">Search Books</a>
       <a href="/buy">Purchase Books</a>
     </nav>
     <div class="content">
@@ -112,7 +112,8 @@
       var ret=await Request("buy "+isbn+" "+quantity);
       if(isFloat(ret))
       {
-        // 删除注册框，在中间显示“注册成功”，三秒后自动跳转到首页
+        document.getElementById("isbn").value="";
+        document.getElementById("quantity").value="";
         document.querySelector('.buy-box').style.display = 'none';
         document.querySelector('.content').innerHTML = '<div class="info-box"><h3>Successfully bought book with ISBN='+isbn+'</h3><h3>Used '+ret+'RMB</h3><p>Auto refreshing page in 10 seconds...</p></div>';
         setTimeout(function(){location.reload();},10000);

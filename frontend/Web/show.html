@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search - ZYM's Book Store</title>
+  <link rel="stylesheet" href="basic.css">
+  <style>
+    .info-box {
+      width: 300px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .search-panel {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .search-panel button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .search-panel label {
+    margin-right: 10px;
+  }
+
+  .search-panel select,
+  .search-panel input {
+    padding: 8px;
+    margin-right: 10px;
+  }
+
+  #searchResults {
+    margin-top: 20px;
+  }
+
+  #searchResults table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  #searchResults th, #searchResults td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  #searchResults th {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  #searchResults td {
+    background-color: #f2f2f2;
+  }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ZYM's Book Store</h1>
+    <div class="user-bar">
+      <span>Welcome, <span id="username">[Guest]</span></span>
+      <div class="action-button-container" onmouseover="showDropdown()" onmouseout="hideDropdown()">
+        <div class="action-button">Actions</div>
+        <div class="dropdown">
+          <div class="dropdown-content">
+            <a href="/login">Login</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); location.reload();})(); return false;">Logout</a>
+            <a href="/register">Register</a>
+            <a href="/passwd">Change Password</a>
+            <a href="/admin">Admin Panel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <a href="/">Home Page</a>
+      <a href="/show">Search Books</a>
+      <a href="/buy">Purchase Books</a>
+    </nav>
+    <div class="content">
+      <div class="search-panel">
+        <button onclick="ShowAll()">Show All Books</button>
+        <label for="searchType">Or Search by:</label>
+        <select id="searchType">
+          <option value="isbn">ISBN</option>
+          <option value="title">Title</option>
+          <option value="author">Author</option>
+          <option value="keyword">Keyword</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Enter search term">
+        <button onclick="performSearch()">Search</button>
+      </div>
+      <div id="searchResults"></div>
+    </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/communication.js"></script>
+  <script src="/basic.js"></script>
+  <script>
+    document.addEventListener('SessionReady', async () => {
+      await UpdateUserInfo();
+      if((await GetMyPrivilege())<1)
+      {
+        document.querySelector('.buy-box').style.display = 'none';
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        setTimeout(function(){window.location.href="/";},3000);
+      }
+    });
+    function performSearch() {
+    // Get the selected search type and the search input value
+    const searchType = document.getElementById('searchType').value;
+    const searchInput = document.getElementById('searchInput').value;
+
+    // Call a function to handle the search logic and display results
+    handleSearch(searchType, searchInput);
+  }
+
+  async function handleSearch(searchType, searchInput) {
+    let ret;
+    if(searchType=='isbn')
+    {
+      ret=await Request("show -ISBN="+searchInput);
+    }
+    else if(searchType=='title')
+    {
+      ret=await Request("show -name=\""+searchInput+"\"");
+    }
+    else if(searchType=='author')
+    {
+      ret=await Request("show -author=\""+searchInput+"\"");
+    }
+    else if(searchType=='keyword')
+    {
+      ret=await Request("show -keyword=\""+searchInput+"\"");
+    }
+    if(ret=="Invalid")
+    {
+      alert("Invalid input");
+      return;
+    }
+    // Implement your logic for handling the search here
+    // You can use AJAX, fetch, or any other method to send a request to the server
+    // and get the search results
+
+    // For now, let's just display a sample result in a table
+    const resultsContainer = document.getElementById('searchResults');
+    if(ret=='')
+    {
+      resultsContainer.innerHTML = '<h2>No results found</h2>';
+      return;
+    }
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <tr>
+        <th>ISBN</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Keywords</th>
+        <th>Price</th>
+        <th>Stock</th>
+      </tr>`;
+    const results=ret.split('\n');
+    for(let i=0;i<results.length;i++)
+    {
+      const row=document.createElement('tr');
+      const cols=results[i].split('\t');
+      for(let j=0;j<cols.length;j++)
+      {
+        const col=document.createElement('td');
+        col.innerHTML=cols[j];
+        row.appendChild(col);
+      }
+      table.appendChild(row);
+    }
+    // Clear previous search results and append the new table
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(table);
+  }
+  async function ShowAll() {
+    let ret;
+    ret=await Request("show");
+    if(ret=="Invalid")
+    {
+      alert("Invalid input");
+      return;
+    }
+    // Implement your logic for handling the search here
+    // You can use AJAX, fetch, or any other method to send a request to the server
+    // and get the search results
+
+    // For now, let's just display a sample result in a table
+    const resultsContainer = document.getElementById('searchResults');
+    if(ret=='')
+    {
+      resultsContainer.innerHTML = '<h2>No results found</h2>';
+      return;
+    }
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <tr>
+        <th>ISBN</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Keywords</th>
+        <th>Price</th>
+        <th>Stock</th>
+      </tr>`;
+    const results=ret.split('\n');
+    for(let i=0;i<results.length;i++)
+    {
+      const row=document.createElement('tr');
+      const cols=results[i].split('\t');
+      for(let j=0;j<cols.length;j++)
+      {
+        const col=document.createElement('td');
+        col.innerHTML=cols[j];
+        row.appendChild(col);
+      }
+      table.appendChild(row);
+    }
+    // Clear previous search results and append the new table
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(table);
+  }
+  </script>
+  <script src="/sessioninit.js"></script>
+</body>
+</html>
