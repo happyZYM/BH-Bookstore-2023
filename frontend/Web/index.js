@@ -110,6 +110,10 @@ app.get('/sessioninit.js', (req, res) => {
   res.sendFile(join(__dirname, 'sessioninit.js'));
 });
 
+app.get('/basic.css', (req, res) => {
+  res.sendFile(join(__dirname, 'basic.css'));
+});
+
 io.on('connection', async (socket) => {
   console.log('a user connected');
   socket.on('disconnect', () => {
