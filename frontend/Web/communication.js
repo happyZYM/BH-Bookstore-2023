@@ -20,16 +20,42 @@ socket.on('response', (msg) => {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-async function RawRequest(raw_request){
-  socket.emit('request', raw_request);
-  while(true)
-  {
-    if(__raw_response!=""){
-      let response=__raw_response;
-      __raw_response="";
-      return response;
+let raw_request_lock = false;
+
+async function acquireRawRequestLock() {
+  return new Promise((resolve) => {
+    const attemptAcquire = () => {
+      if (!raw_request_lock) {
+        raw_request_lock = true;
+        resolve();
+      } else {
+        setTimeout(attemptAcquire, 10);
+      }
+    };
+
+    attemptAcquire();
+  });
+}
+
+function releaseRawRequestLock() {
+  raw_request_lock = false;
+}
+async function RawRequest(raw_request) {
+  await acquireRawRequestLock();
+
+  try {
+    socket.emit('request', raw_request);
+
+    while (true) {
+      if (__raw_response !== "") {
+        let response = __raw_response;
+        __raw_response = "";
+        return response;
+      }
+      await sleep(100);
     }
-    await sleep(100);
+  } finally {
+    releaseRawRequestLock();
   }
 }
 async function ShutDownWholeSystem()
