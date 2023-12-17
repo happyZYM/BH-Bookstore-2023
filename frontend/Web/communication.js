@@ -29,7 +29,7 @@ async function acquireRawRequestLock() {
         raw_request_lock = true;
         resolve();
       } else {
-        setTimeout(attemptAcquire, 10);
+        setTimeout(attemptAcquire, 3);
       }
     };
 
@@ -52,7 +52,7 @@ async function RawRequest(raw_request) {
         __raw_response = "";
         return response;
       }
-      await sleep(100);
+      await sleep(10);
     }
   } finally {
     releaseRawRequestLock();

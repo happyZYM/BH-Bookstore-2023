@@ -57,7 +57,7 @@ async function GetResult(session_token,operation_token) {
         return ret;
       }
     }
-    await sleep(100);
+    await sleep(10);
   }
 }
 
