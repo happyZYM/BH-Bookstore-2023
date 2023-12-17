@@ -52,16 +52,38 @@ async function IsValid(text) {
   };
   let response;
   try {
-    // 调用接口获取检测结果。
-    response = await client.request('TextModeration', params, requestOption);
+    // 使用Promise.race设置超时时间为3000毫秒。
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), 3000-100)
+    );
+  
+    // 调用接口获取检测结果，同时等待timeoutPromise。
+    response = await Promise.race([
+      client.request('TextModeration', params, requestOption),
+      timeoutPromise
+    ]);
+  
     // 自动路由。
     if (response.Code === 500) {
       // 区域切换到cn-beijing。
       client.endpoint = "https://green-cip.cn-shanghai.aliyuncs.com";
-      response = await client.request('TextModeration', params, requestOption);
+  
+      // 重新调用接口，并再次等待timeoutPromise。
+      response = await Promise.race([
+        client.request('TextModeration', params, requestOption),
+        timeoutPromise
+      ]);
     }
-  } catch (err) {
-    console.log(err);
+  
+    // 处理正常响应的逻辑，例如返回结果等。
+    // ...
+  
+  } catch (error) {
+    return true;
+    // 处理超时错误或其他错误。
+    console.error(error.message);
+    // 进行适当的错误处理，例如重试、记录日志等。
+    // ...
   }
   if(response['Message']=='OK')
   {

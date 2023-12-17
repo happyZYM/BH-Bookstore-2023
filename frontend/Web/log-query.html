@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - ZYM's Book Store</title>
+  <link rel="stylesheet" href="basic.css">
+  <style>
+    .info-box {
+      width: 300px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .query-section {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    background-color: #f8f8f8;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: #007BFF;
+  }
+
+  select:after {
+    content: '\25BC'; /* Unicode character for down arrow */
+    font-size: 14px;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #555;
+  }
+
+  button {
+    padding: 10px 15px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+  .log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.log-table th, .log-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.log-table th {
+  background-color: #007BFF;
+  color: #fff;
+}
+
+.log-table td:first-child {
+  width: 50px; /* Adjust the width for the ID column */
+}
+
+.log-table td:nth-child(2) {
+  width: 150px; /* Adjust the width for the User column */
+}
+
+.log-table td:nth-child(3) {
+  width: 70%; /* Adjust the width for the Command column */
+}
+
+.log-table tr:hover {
+  background-color: #f5f5f5;
+}
+.finance-report-table {
+  width: 45%; /* 设置表格宽度，根据需要调整 */
+  border-collapse: collapse;
+  margin-right: 5%; /* 设置表格之间的间距 */
+  float: left; /* 设置浮动，使两个表格并排显示 */
+}
+
+.finance-report-table th, .finance-report-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.finance-report-table th {
+  background-color: #007BFF;
+  color: #fff;
+}
+
+.finance-report-table tr:hover {
+  background-color: #f5f5f5;
+}
+.finance-report-table caption {
+  caption-side: top;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+/* Style for the worker log table */
+.workerlog-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+/* Style for table caption */
+.workerlog-table caption {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Style for table header cells */
+.workerlog-table th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  background-color: #f2f2f2;
+}
+
+/* Style for table data cells */
+.workerlog-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Set a specific percentage width for each column */
+.workerlog-table th:nth-child(1),
+.workerlog-table td:nth-child(1) {
+  width: 15%;
+}
+
+.workerlog-table th:nth-child(2),
+.workerlog-table td:nth-child(2) {
+  width: 20%;
+}
+
+.workerlog-table th:nth-child(3),
+.workerlog-table td:nth-child(3) {
+  width: 65%;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 600px) {
+  .workerlog-table {
+    font-size: 12px;
+  }
+  .workerlog-table th, .workerlog-table td {
+    padding: 6px;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ZYM's Book Store</h1>
+    <div class="user-bar">
+      <span>Welcome, <span id="username">[Guest]</span></span>
+      <div class="action-button-container" onmouseover="showDropdown()" onmouseout="hideDropdown()">
+        <div class="action-button">Actions</div>
+        <div class="dropdown">
+          <div class="dropdown-content">
+            <a href="/login">Login</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); location.reload();})(); return false;">Logout</a>
+            <a href="/register">Register</a>
+            <a href="/passwd">Change Password</a>
+            <a href="/admin">Admin Panel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <a href="/">Home Page</a>
+      <a href="/show">Search Books</a>
+      <a href="/buy">Purchase Books</a>
+    </nav>
+    <div class="content">
+      <div class="query-section">
+        <label for="queryType">Select Query Type:</label>
+        <select id="queryType">
+          <option value="financial">Financial Summary</option>
+          <option value="recentTransactions">Recent Transactions</option>
+          <option value="financialReport">Financial Report</option>
+          <option value="employeeReport">Employee Work Report</option>
+          <option value="systemLog">System Work Log</option>
+        </select>
+      
+        <div id="recentTransactionsSection" style="display:none;">
+          <label for="transactionCount">Enter Number of Transactions:</label>
+          <input type="number" id="transactionCount" min="1" value="5">
+        </div>
+      
+        <button onclick="handleQuery()">Query</button>
+      </div>
+      
+      <div class="result-section" id="resultSection"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/communication.js"></script>
+  <script src="/basic.js"></script>
+  <script>
+    document.addEventListener('SessionReady', async () => {
+      await UpdateUserInfo();
+      if((await GetMyPrivilege())<7)
+      {
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in as root first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        setTimeout(function(){window.location.href="/";},3000);
+      }
+    });
+    async function handleQuery() {
+      const resultSection = document.getElementById('resultSection');
+      resultSection.innerHTML="";
+      const queryType = document.getElementById('queryType').value;
+      let queryParam = '';
+
+      if (queryType === 'recentTransactions') {
+        const transactionCount = document.getElementById('transactionCount').value;
+        let ret=await Request("show finance "+transactionCount);
+        if(ret=='') ret='+ 0.00 - 0.00';
+        if(ret!='Invalid'){
+          resultSection.innerHTML='<div class="info-box"><h2>Recent '+transactionCount+' Transactions</h2><h1>'+ret+'</h1></div>';
+        }
+        else{
+          resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
+        }
+        return;
+      }
+      else if(queryType=='financial')
+      {
+        let ret=await Request("show finance");
+        if(ret!='Invalid'){
+          resultSection.innerHTML='<div class="info-box"><h2>Financial Summary</h2><h1>'+ret+'</h1></div>';
+        }
+        else{
+          resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
+        }
+        return;
+      }
+      else if(queryType=='financialReport')
+      {
+        let ret=await Request("report finance");
+        if(ret=='Invalid')
+        {
+          resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
+          return;
+        }
+        /* This result is in the following format
+Sale Ranking:
+[ISBN]\t[Total Sale]\t[Total Cost]\n
+--------------------
+Cost Ranking:
+[ISBN]\t[Total Cost]\t[Total Sale]\n
+
+        Display it in two tables side by side
+        */
+        let ret_list=ret.split("\n");
+        let table1=document.createElement("table");
+        let table2=document.createElement("table");
+        // ad type for the table to suite css
+        table1.setAttribute("class","finance-report-table");
+        table2.setAttribute("class","finance-report-table");
+        table1.innerHTML = "<caption>Sale Ranking</caption>";
+        table2.innerHTML = "<caption>Cost Ranking</caption>";
+        let tr1=document.createElement("tr");
+        let tr2=document.createElement("tr");
+        let th1=document.createElement("th");
+        let th2=document.createElement("th");
+        let th3=document.createElement("th");
+        th1.innerHTML="ISBN";
+        th2.innerHTML="Total Sale";
+        th3.innerHTML="Total Cost";
+        tr1.appendChild(th1);
+        tr1.appendChild(th2);
+        tr1.appendChild(th3);
+        table1.appendChild(tr1);
+        th1=document.createElement("th");
+        th2=document.createElement("th");
+        th3=document.createElement("th");
+        th1.innerHTML="ISBN";
+        th2.innerHTML="Total Cost";
+        th3.innerHTML="Total Sale";
+        tr2.appendChild(th1);
+        tr2.appendChild(th2);
+        tr2.appendChild(th3);
+        table2.appendChild(tr2);
+        let flag=0;
+        console.log(ret_list);
+        for(let i=0;i<ret_list.length;i++)
+        {
+          if(ret_list[i]=="--------------------")
+          {
+            flag=1;
+            continue;
+          }
+          let ret=ret_list[i].split("\t");
+          if(ret.length<3)
+            continue;
+          let tr=document.createElement("tr");
+          let td1=document.createElement("td");
+          let td2=document.createElement("td");
+          let td3=document.createElement("td");
+          td1.innerHTML=ret[0];
+          td2.innerHTML=ret[2];
+          td3.innerHTML=ret[3];
+          if(flag==0)
+          {
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            table1.appendChild(tr);
+          }
+          else
+          {
+            tr.appendChild(td1);
+            tr.appendChild(td3);
+            tr.appendChild(td2);
+            table2.appendChild(tr);
+          }
+        }
+        resultSection.appendChild(table1);
+        resultSection.appendChild(table2);
+        return;
+      }
+      else if(queryType=='employeeReport')
+      {
+        let ret=await Request("report employee");
+        if(ret=='Invalid')
+        {
+          resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
+          return;
+        }
+        if(ret=='[empty]')
+        {
+          resultSection.innerHTML='<div class="info-box"><h1>No data</h1></div>';
+          return;
+        }
+        /*The return value is in the following format
+---------- [name] ----------
+[optid] [name] [command]\n
+---------- [name] ----------
+[optid] [name] [command]\n
+          Show these data in multiple tables. Each table is for one worker with caption of his name.
+          Note that there may be blanks in command.
+        */
+        let ret_list=ret.split("\n");
+        // warning: there are multiple tables
+        let table=document.createElement("table");
+        // ad type for the table to suite css
+        table.setAttribute("class","workerlog-table");
+        let tr=document.createElement("tr");
+        let th1=document.createElement("th");
+        let th2=document.createElement("th");
+        let th3=document.createElement("th");
+        th1.innerHTML="ID";
+        th2.innerHTML="User";
+        th3.innerHTML="Command";
+        tr.appendChild(th1);
+        tr.appendChild(th2);
+        tr.appendChild(th3);
+        table.appendChild(tr);
+        let flag=0;
+        for(let i=0;i<ret_list.length;i++)
+        {
+          if(ret_list[i].startsWith("----------"))
+          {
+            if(flag==1)
+              resultSection.appendChild(table);
+            flag=1;
+            table=document.createElement("table");
+            // ad type for the table to suite css
+            table.setAttribute("class","workerlog-table");
+            let tr=document.createElement("tr");
+            let th1=document.createElement("th");
+            let th2=document.createElement("th");
+            let th3=document.createElement("th");
+            th1.innerHTML="ID";
+            th2.innerHTML="User";
+            th3.innerHTML="Command";
+            tr.appendChild(th1);
+            tr.appendChild(th2);
+            tr.appendChild(th3);
+            table.appendChild(tr);
+            let caption=document.createElement("caption");
+            caption.innerHTML=ret_list[i].split(" ")[1];
+            table.appendChild(caption);
+            continue;
+          }
+          let log=ret_list[i].split(" ");
+          if(log.length<3)
+            continue;
+          let tr=document.createElement("tr");
+          let td1=document.createElement("td");
+          let td2=document.createElement("td");
+          let td3=document.createElement("td");
+          td1.innerHTML=log[0];
+          td2.innerHTML=log[1];
+          td3.innerHTML=log.slice(2).join(" ");
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tr.appendChild(td3);
+          table.appendChild(tr);
+        }
+        if(flag==1)
+          resultSection.appendChild(table);
+        return;
+      }
+      else if(queryType=='systemLog')
+      {
+        let ret=await Request("log");
+        let log_list=ret.split("\n");
+        // note that each line is in the format of [id] [user] [command]
+        // warning: their may be blanks in command
+        // show the three items in a table
+        let table=document.createElement("table");
+        // ad type for the table to suite css
+        table.setAttribute("class","log-table");
+        let tr=document.createElement("tr");
+        let th1=document.createElement("th");
+        let th2=document.createElement("th");
+        let th3=document.createElement("th");
+        th1.innerHTML="ID";
+        th2.innerHTML="User";
+        th3.innerHTML="Command";
+        tr.appendChild(th1);
+        tr.appendChild(th2);
+        tr.appendChild(th3);
+        table.appendChild(tr);
+        for(let i=0;i<log_list.length;i++)
+        {
+          let log=log_list[i].split(" ");
+          if(log.length<3)
+            continue;
+          let tr=document.createElement("tr");
+          let td1=document.createElement("td");
+          let td2=document.createElement("td");
+          let td3=document.createElement("td");
+          td1.innerHTML=log[0];
+          td2.innerHTML=log[1];
+          td3.innerHTML=log.slice(2).join(" ");
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tr.appendChild(td3);
+          table.appendChild(tr);
+        }
+        resultSection.appendChild(table);
+        return;
+      }
+
+      // Call a function or make an AJAX request to handle the query with the selected parameters
+      // For example: Request('query?type=' + queryType + queryParam, handleQueryResponse);
+    }
+
+    // Show/hide the 'Enter Number of Transactions' section based on the selected query type
+    document.getElementById('queryType').addEventListener('change', function() {
+      const recentTransactionsSection = document.getElementById('recentTransactionsSection');
+      recentTransactionsSection.style.display = this.value === 'recentTransactions' ? 'block' : 'none';
+    });
+  </script>
+  <script src="/sessioninit.js"></script>
+</body>
+</html>
