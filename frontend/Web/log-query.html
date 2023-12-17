@@ -260,7 +260,7 @@
         let ret=await Request("show finance "+transactionCount);
         if(ret=='') ret='+ 0.00 - 0.00';
         if(ret!='Invalid'){
-          resultSection.innerHTML='<div class="info-box"><h2>Recent '+transactionCount+' Transactions</h2><h1>'+ret+'</h1></div>';
+          resultSection.innerHTML='<div class="info-box"><h2>Recent '+transactionCount+' Transactions</h2><h1>'+'+ '+ret.split(' ')[1]+'</h1><h1>'+'- '+ret.split(' ')[3]+'</h1></div>';
         }
         else{
           resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
@@ -270,8 +270,9 @@
       else if(queryType=='financial')
       {
         let ret=await Request("show finance");
+        if(ret=='') ret='+ 0.00 - 0.00';
         if(ret!='Invalid'){
-          resultSection.innerHTML='<div class="info-box"><h2>Financial Summary</h2><h1>'+ret+'</h1></div>';
+          resultSection.innerHTML='<div class="info-box"><h2>Financial Summary</h2><h1>'+'+ '+ret.split(' ')[1]+'</h1><h1>'+'- '+ret.split(' ')[3]+'</h1></div>';
         }
         else{
           resultSection.innerHTML='<div class="info-box"><h1>Invalid Input</h1></div>';
