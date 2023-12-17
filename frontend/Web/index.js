@@ -203,6 +203,18 @@ app.get('/show', (req, res) => {
   res.sendFile(join(__dirname, 'show.html'));
 });
 
+app.get('/user-management', (req, res) => {
+  res.sendFile(join(__dirname, 'user-management.html'));
+});
+
+app.get('/book-management', (req, res) => {
+  res.sendFile(join(__dirname, 'book-management.html'));
+});
+
+app.get('/log-query', (req, res) => {
+  res.sendFile(join(__dirname, 'log-query.html'));
+});
+
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
 });

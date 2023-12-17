@@ -5,34 +5,28 @@
   <title>Admin Panel - ZYM's Book Store</title>
   <link rel="stylesheet" href="basic.css">
   <style>
-    .passwd-box {
-            width: 300px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
+    .admin-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
 
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
+    .admin-buttons button {
+      width: 80%;
+      padding: 20px;
+      margin: 10px 0;
+      font-size: 18px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4caf50;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-
+    .admin-buttons button:hover {
+      background-color: #2980b9;
+    }
     .info-box {
       width: 300px;
       padding: 20px;
@@ -74,7 +68,11 @@
       <a href="/buy">Purchase Books</a>
     </nav>
     <div class="content">
-      This is content.
+      <div class="admin-buttons">
+        <button onclick="window.location.href='/user-management'">User Management System</button>
+        <button onclick="window.location.href='/book-management'">Book Information Management System</button>
+        <button onclick="window.location.href='/log-query'">Log Query System</button>
+      </div>
     </div>
   </div>
 
