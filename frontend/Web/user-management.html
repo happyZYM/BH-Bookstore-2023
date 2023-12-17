@@ -93,8 +93,8 @@
           <label for="privilege">Privilege:</label>
           <input type="number" id="privilege">
       
-          <label for="username">Username:</label>
-          <input type="text" id="username">
+          <label for="username_input">Username:</label>
+          <input type="text" id="username_input">
       
           <button onclick="addUser()">Add User</button>
           <button onclick="deleteUser()">Delete User</button>
@@ -120,7 +120,7 @@
       var userId = document.getElementById("userId").value;
       var password = document.getElementById("password").value;
       var privilege = document.getElementById("privilege").value;
-      var username = document.getElementById("username").value;
+      var username = document.getElementById("username_input").value;
       if(userId=="" || password=="" || privilege=="" || username=="")
       {
         alert("Please fill in all fields.");
@@ -139,7 +139,7 @@
         document.getElementById("userId").value = "";
         document.getElementById("password").value = "";
         document.getElementById("privilege").value = "";
-        document.getElementById("username").value = "";
+        document.getElementById("username_input").value = "";
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Successfully added user</h2><p>Auto refreshing page in 5 seconds...</p></div>';
         setTimeout(function(){location.reload();},5000);
       }
@@ -165,7 +165,7 @@
         document.getElementById("userId").value = "";
         document.getElementById("password").value = "";
         document.getElementById("privilege").value = "";
-        document.getElementById("username").value = "";
+        document.getElementById("username_input").value = "";
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Successfully deleted user</h2><p>Auto refreshing page in 5 seconds...</p></div>';
         setTimeout(function(){location.reload();},5000);
       }
