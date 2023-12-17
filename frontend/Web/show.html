@@ -119,7 +119,6 @@
       await UpdateUserInfo();
       if((await GetMyPrivilege())<1)
       {
-        document.querySelector('.buy-box').style.display = 'none';
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
