@@ -35,6 +35,7 @@ async function IsValid(text) {
   // 再去除换行和回车
   //text = text.replace(/[\r\n]/g, "");
   console.log("after replace: "+text);
+  if(text.length==0||text.length>590) return true;
   // 通过以下代码创建API请求并设置参数。
   const params = {
     // 文本检测service：内容安全控制台文本增强版规则配置的serviceCode，示例：chat_detection
