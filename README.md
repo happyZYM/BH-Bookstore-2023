@@ -12,3 +12,4 @@
 
 ## User Docs
 - [系统安装手册](docs/user/系统安装手册.md)
+- [用户手册](docs/user/用户手册.md)
