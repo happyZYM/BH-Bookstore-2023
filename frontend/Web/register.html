@@ -98,17 +98,14 @@
       var password = document.getElementById("password").value;
       var nick_name = document.getElementById("nickname").value;
       var ret=await Request("register "+username+" "+password+" "+nick_name);
-      if(ret=="Invalid")
-      {
-        alert("Invalid username or password");
-      }
-      else
+      if(ret=="[empty]")
       {
         // 删除注册框，在中间显示“注册成功”，三秒后自动跳转到首页
         document.querySelector('.register-box').style.display = 'none';
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Register Success</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
+      else alert("Invalid username or password");
     }
   </script>
   <script src="/sessioninit.js"></script>

@@ -95,16 +95,13 @@
       var username = document.getElementById("user_name").value;
       var password = document.getElementById("password").value;
       var ret=await Request("su "+username+" "+password);
-      if(ret=="Invalid")
-      {
-        alert("Invalid username or password");
-      }
-      else
+      if(ret=="[empty]")
       {
         await UpdateUserInfo();
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Login Success</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
+      else alert("Invalid username or password");
     }
   </script>
   <script src="/sessioninit.js"></script>

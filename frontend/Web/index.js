@@ -2,6 +2,8 @@ const express = require('express');
 const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
+const IsValid=require('./validator.js');
+const Validing=process.env['VALIDING'];
 
 const app = express();
 const server = createServer(app);
@@ -46,6 +48,12 @@ async function GetResult(session_token,operation_token) {
       {
         const ret=message_map.get(session_token).get(operation_token);
         message_map.get(session_token).delete(operation_token);
+        if(Validing=='True'){
+          if(!(await IsValid(ret)))
+          {
+            ret="Invalid Content";
+          }
+        }
         return ret;
       }
     }
@@ -124,6 +132,13 @@ io.on('connection', async (socket) => {
   });
   socket.on('request', async (msg) => {
     console.log('message: ' + msg);
+    if(Validing=='True'){
+      if(!(await IsValid(msg)))
+      {
+        socket.emit('response', "Invalid Input");
+        return;
+      }
+    }
     const substrings = msg.trim().split('\n')[0].split(' ');
     const head=substrings[0];
     const session_token=substrings[1];

@@ -104,17 +104,14 @@
       var old_password = document.getElementById("old_password").value;
       var new_password = document.getElementById("new_password").value;
       var ret=await Request("passwd "+username+" "+old_password+" "+new_password);
-      if(ret=="Invalid")
-      {
-        alert("Invalid username or old password");
-      }
-      else
+      if(ret=="[empty]")
       {
         // 删除注册框，在中间显示“注册成功”，三秒后自动跳转到首页
         document.querySelector('.passwd-box').style.display = 'none';
         document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Successfully changed password</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
+      else alert("Invalid username or old password");
     }
   </script>
   <script src="/sessioninit.js"></script>
