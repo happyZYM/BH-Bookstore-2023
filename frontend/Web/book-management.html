@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookManagement - Admin Panel - ZYM's Book Store</title>
+  <link rel="stylesheet" href="basic.css">
+  <style>
+    .info-box {
+      width: 300px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .book-management {
+  margin-top: 20px;
+}
+
+.book-form,
+.purchase-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.book-form label,
+.purchase-form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.book-form input,
+.purchase-form input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.book-form button,
+.purchase-form button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.book-form button:hover,
+.purchase-form button:hover {
+  background-color: #45a049;
+}
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ZYM's Book Store</h1>
+    <div class="user-bar">
+      <span>Welcome, <span id="username">[Guest]</span></span>
+      <div class="action-button-container" onmouseover="showDropdown()" onmouseout="hideDropdown()">
+        <div class="action-button">Actions</div>
+        <div class="dropdown">
+          <div class="dropdown-content">
+            <a href="/login">Login</a>
+            <a href="#" onclick="(async () => { await Request('logout'); await UpdateUserInfo(); location.reload();})(); return false;">Logout</a>
+            <a href="/register">Register</a>
+            <a href="/passwd">Change Password</a>
+            <a href="/admin">Admin Panel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <a href="/">Home Page</a>
+      <a href="/show">Search Books</a>
+      <a href="/buy">Purchase Books</a>
+    </nav>
+    <div class="content">
+      <div class="book-management">
+        <h2>Book Management</h2>
+        <div class="book-form">
+          <label for="isbn">ISBN:</label>
+          <input type="text" id="isbn" required>
+      
+          <label for="newIsbn">New ISBN:</label>
+          <input type="text" id="newIsbn" placeholder="Leave blank for not change">
+      
+          <label for="title">Title:</label>
+          <input type="text" id="title" placeholder="Leave blank for not change">
+      
+          <label for="author">Author:</label>
+          <input type="text" id="author" placeholder="Leave blank for not change">
+      
+          <label for="keywords">Keywords:</label>
+          <input type="text" id="keywords" placeholder="Leave blank for not change">
+      
+          <label for="price">Price:</label>
+          <input type="text" id="price" placeholder="Leave blank for not change">
+      
+          <button onclick="updateBook()">Update Book Info</button>
+        </div>
+      
+        <div class="purchase-form">
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" required>
+      
+          <label for="totalCost">Total Cost:</label>
+          <input type="text" id="totalCost" required>
+      
+          <button onclick="purchaseBooks()">Import Books</button>
+        </div>
+      </div>      
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/communication.js"></script>
+  <script src="/basic.js"></script>
+  <script>
+    document.addEventListener('SessionReady', async () => {
+      await UpdateUserInfo();
+      if((await GetMyPrivilege())<3)
+      {
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in as worker or root first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        setTimeout(function(){window.location.href="/";},3000);
+      }
+    });
+    async function updateBook() {
+      let isbn = document.getElementById('isbn').value;
+      let newIsbn = document.getElementById('newIsbn').value;
+      let title = document.getElementById('title').value;
+      let author = document.getElementById('author').value;
+      let keywords = document.getElementById('keywords').value;
+      let price = document.getElementById('price').value;
+      let cmd="modify";
+      await Request("select "+isbn);
+      if(newIsbn!="") cmd+=" -ISBN="+newIsbn;
+      if(title!="") cmd+=" -name=\""+title+"\"";
+      if(author!="") cmd+=" -author=\""+author+"\"";
+      if(keywords!="") cmd+=" -keyword=\""+keywords+"\"";
+      if(price!="") cmd+=" -price="+price;
+      let result = await Request(cmd);
+      if(result == '[empty]') {
+        document.querySelector('.content').innerHTML='<div class="info-box"><h2>Successfully updated book info</h2><p>Auto refreshing page in 5 seconds...</p></div>';
+        setTimeout(function(){location.reload();},5000);
+      } else {
+        alert('Failed to update book info.');
+      }
+    }
+    async function purchaseBooks() {
+      let isbn = document.getElementById('isbn').value;
+      let quantity = document.getElementById('quantity').value;
+      let totalCost = document.getElementById('totalCost').value;
+      await Request("select "+isbn);
+      let result = await Request('import '+quantity+' '+totalCost);
+      if(result == '[empty]') {
+        document.querySelector('.content').innerHTML='<div class="info-box"><h2>Successfully purchased books</h2><p>Auto refreshing page in 5 seconds...</p></div>';
+        setTimeout(function(){location.reload();},5000);
+      } else {
+        alert('Failed to purchase books.');
+      }
+    }
+  </script>
+  <script src="/sessioninit.js"></script>
+</body>
+</html>
