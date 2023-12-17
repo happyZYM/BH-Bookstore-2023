@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>login - ZYM's Book Store</title>
+  <title>Buy - ZYM's Book Store</title>
   <link rel="stylesheet" href="basic.css">
   <style>
-    .login-box {
+    .buy-box {
             width: 300px;
             padding: 20px;
             border: 1px solid #ccc;
@@ -32,7 +32,8 @@
             border: none;
             cursor: pointer;
         }
-        .info-box {
+
+    .info-box {
       width: 300px;
       padding: 20px;
       border: 1px solid #ccc;
@@ -72,11 +73,11 @@
       <a href="/buy">Purchase Books</a>
     </nav>
     <div class="content">
-      <div class="login-box">
-        <form onsubmit="console.log('trying login'); TryLogin(); return false;">
-            <input id="user_name" type="text" placeholder="Username" required>
-            <input id="password" type="password" placeholder="Password" required>
-            <button type="submit">Login</button>
+      <div class="buy-box">
+        <form onsubmit="console.log('trying passwd'); TryBuy(); return false;">
+            <input id="isbn" type="text" placeholder="ISBN" required>
+            <input id="quantity" type="text" placeholder="Quantity" required>
+            <button type="submit">Buy</button>
         </form>
     </div>
     </div>
@@ -88,20 +89,34 @@
   <script>
     document.addEventListener('SessionReady', async () => {
       await UpdateUserInfo();
-    });
-    async function TryLogin()
-    {
-      console.log("TryLogin called");
-      var username = document.getElementById("user_name").value;
-      var password = document.getElementById("password").value;
-      var ret=await Request("su "+username+" "+password);
-      if(ret=="[empty]")
+      if((await GetMyPrivilege())<1)
       {
-        await UpdateUserInfo();
-        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Login Success</h2><p>Redirecting to home page in 3 seconds...</p></div>';
+        document.querySelector('.buy-box').style.display = 'none';
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h2>Please log in first.</h2><p>Redirecting to home page in 3 seconds...</p></div>';
         setTimeout(function(){window.location.href="/";},3000);
       }
-      else alert("Invalid username or password");
+    });
+    function isFloat(str) {
+      // 使用parseFloat尝试将字符串转换为浮点数
+      var floatValue = parseFloat(str);
+
+      // 使用isNaN检查是否成功转换，并确保不是Infinity或NaN
+      return !isNaN(floatValue) && isFinite(floatValue);
+    }
+    async function TryBuy()
+    {
+      console.log("TryBuy called");
+      var isbn = document.getElementById("isbn").value;
+      var quantity = document.getElementById("quantity").value;
+      var ret=await Request("buy "+isbn+" "+quantity);
+      if(isFloat(ret))
+      {
+        // 删除注册框，在中间显示“注册成功”，三秒后自动跳转到首页
+        document.querySelector('.buy-box').style.display = 'none';
+        document.querySelector('.content').innerHTML = '<div class="info-box"><h3>Successfully bought book with ISBN='+isbn+'</h3><h3>Used '+ret+'RMB</h3><p>Auto refreshing page in 10 seconds...</p></div>';
+        setTimeout(function(){location.reload();},10000);
+      }
+      else alert("Invalid bookname or quantity");
     }
   </script>
   <script src="/sessioninit.js"></script>
