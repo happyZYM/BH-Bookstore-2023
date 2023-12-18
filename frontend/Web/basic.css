@@ -1,6 +1,9 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  min-height: 100vh; /* 设置 body 的最小高度为视口的高度 */
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -22,7 +25,7 @@ header {
 }
 
 .user-bar span {
-  margin-right: 20px; /* Add spacing between "Welcome, Guest" and "Actions" */
+  margin-right: 20px;
 }
 
 .user-bar a {
@@ -43,15 +46,15 @@ header {
   padding: 10px 15px;
   background-color: #007bff;
   color: #fff;
-  border: 2px solid #0056b3; /* Dark blue border */
-  border-radius: 5px; /* Rounded corners */
+  border: 2px solid #0056b3;
+  border-radius: 5px;
   cursor: pointer;
   display: inline-block;
 }
 
 .action-button:hover,
 .dropdown-content:hover {
-  background-color: #87CEFA; /* Light blue background on hover */
+  background-color: #87CEFA;
 }
 
 .dropdown {
@@ -62,12 +65,12 @@ header {
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #87CEFA; /* Light blue background */
+  background-color: #87CEFA;
   box-shadow: 0 8px 16px rgba(0,0,0,0.1);
   z-index: 1;
   max-width: 150px;
   right: 0;
-  top: 100%; /* Position below the action button */
+  top: 100%;
 }
 
 .dropdown-content a {
@@ -75,9 +78,9 @@ header {
   padding: 10px;
   text-decoration: none;
   color: #333;
-  text-align: center; /* Horizontally center the text */
-  width: 100%; /* Make the width 100% */
-  box-sizing: border-box; /* Include padding in the width */
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dropdown-content a:hover {
@@ -89,8 +92,7 @@ header {
 }
 
 .main-content {
-  /*margin-top: 40px; /* Adjust margin to account for the fixed user-bar */
-  height: 80vh;
+  flex: 1;
   display: flex;
 }
 
@@ -98,7 +100,7 @@ nav {
   width: 200px;
   background-color: #f4f4f4;
   padding: 20px;
-  height: 80vh;
+  min-height: calc(100vh - 70px); /* 70px 是 header 的高度，设置 nav 的最小高度 */
 }
 
 nav a {

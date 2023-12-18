@@ -111,6 +111,9 @@ backend.stdout.on('data', (data) => {
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
 });
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(join(__dirname, 'book.ico'));
+});
 app.get('/communication.js', (req, res) => {
   res.sendFile(join(__dirname, 'communication.js'));
 });
