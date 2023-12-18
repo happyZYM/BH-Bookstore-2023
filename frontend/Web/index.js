@@ -140,6 +140,12 @@ io.on('connection', async (socket) => {
       }
     }
     const substrings = msg.trim().split('\n')[0].split(' ');
+    if(substrings.length<2)
+    {
+      console.log("input has "+substrings.length+" words");
+      socket.emit('response', "Invalid Input");
+      return;
+    }
     const head=substrings[0];
     const session_token=substrings[1];
     if(head[1]=='O')
