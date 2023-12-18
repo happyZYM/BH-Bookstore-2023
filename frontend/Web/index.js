@@ -46,7 +46,7 @@ async function GetResult(session_token,operation_token) {
     {
       if(message_map.get(session_token).has(operation_token))
       {
-        const ret=message_map.get(session_token).get(operation_token);
+        let ret=message_map.get(session_token).get(operation_token);
         message_map.get(session_token).delete(operation_token);
         if(Validing=='True'){
           if(!(await IsValid(ret)))
@@ -144,12 +144,36 @@ io.on('connection', async (socket) => {
     const session_token=substrings[1];
     if(head[1]=='O')
     {
+      if(msg.split('\n').length!=1)
+      {
+        console.log("O: input has "+msg.split('\n').length+" lines");
+        socket.emit('response', "Invalid Input");
+        return;
+      }
       SendRequest(msg);
       ret=await GetResult(session_token,"Init");
       console.log("ret: "+ret);
       socket.emit('response', ret);
     }
     else{
+      if(head[1]=='R')
+      {
+        if(msg.split('\n').length!=2)
+        {
+          console.log("R: input has "+msg.split('\n').length+" lines");
+          socket.emit('response', "Invalid Input");
+          return;
+        }
+      }
+      else
+      {
+        if(msg.split('\n').length!=1)
+        {
+          console.log("other: input has "+msg.split('\n').length+" lines");
+          socket.emit('response', "Invalid Input");
+          return;
+        }
+      }
       const operation_token=substrings[2];
       const outhentication_key=substrings[3];
       const command=msg.trim().split('\n')[1];
