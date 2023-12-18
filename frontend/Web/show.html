@@ -17,53 +17,58 @@
       transform: translate(-50%, -50%);
     }
     .search-panel {
-    margin-bottom: 20px;
-    text-align: center;
-  }
+        margin-bottom: 20px;
+        text-align: center;
+    }
 
-  .search-panel button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+    .search-panel button,
+    .search-panel form {
+        display: inline-block; /* 或者使用 display: inline-flex; */
+    }
 
-  .search-panel label {
-    margin-right: 10px;
-  }
+    .search-panel button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 
-  .search-panel select,
-  .search-panel input {
-    padding: 8px;
-    margin-right: 10px;
-  }
+    .search-panel label {
+        margin-right: 10px;
+    }
 
-  #searchResults {
-    margin-top: 20px;
-  }
+    .search-panel select,
+    .search-panel input {
+        padding: 8px;
+        margin-right: 10px;
+    }
 
-  #searchResults table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
+    #searchResults {
+      margin-top: 20px;
+    }
 
-  #searchResults th, #searchResults td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
+    #searchResults table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
 
-  #searchResults th {
-    background-color: #4CAF50;
-    color: white;
-  }
+    #searchResults th, #searchResults td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
 
-  #searchResults td {
-    background-color: #f2f2f2;
-  }
+    #searchResults th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    #searchResults td {
+      background-color: #f2f2f2;
+    }
   </style>
 </head>
 <body>
@@ -96,15 +101,17 @@
     <div class="content">
       <div class="search-panel">
         <button onclick="ShowAll()">Show All Books</button>
-        <label for="searchType">Or Search by:</label>
-        <select id="searchType">
-          <option value="isbn">ISBN</option>
-          <option value="title">Title</option>
-          <option value="author">Author</option>
-          <option value="keyword">Keyword</option>
-        </select>
-        <input type="text" id="searchInput" placeholder="Enter search term" required>
-        <button onclick="performSearch()">Search</button>
+        <form onsubmit="console.log('trying passwd'); performSearch(); return false;">
+          <label for="searchType">Or Search by:</label>
+          <select id="searchType">
+            <option value="isbn">ISBN</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="keyword">Keyword</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="Enter search term" required>
+          <button type="submit">Search</button>
+        </form>
       </div>
       <div id="searchResults"></div>
     </div>
