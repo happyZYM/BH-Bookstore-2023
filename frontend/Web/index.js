@@ -162,6 +162,12 @@ io.on('connection', async (socket) => {
       socket.emit('response', ret);
     }
     else{
+      if(substrings.length!=4)
+      {
+        console.log("input has "+substrings.length+" words");
+        socket.emit('response', "Invalid Input");
+        return;
+      }
       if(head[1]=='R')
       {
         if(msg.split('\n').length!=2)
