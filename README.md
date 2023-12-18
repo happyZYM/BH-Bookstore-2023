@@ -13,3 +13,7 @@
 ## User Docs
 - [系统安装手册](docs/user/系统安装手册.md)
 - [用户手册](docs/user/用户手册.md)
+
+demo(2024年1月5日之前在线)：
+- [网页端](http://bookstore.zymsite.ink/)
+- [客户端](https://jbox.sjtu.edu.cn/v/link/view/a4843cf3920a44ff95c0bfc92aafb41a)
