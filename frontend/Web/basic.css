@@ -2,7 +2,7 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   min-height: 100vh; /* 设置 body 的最小高度为视口的高度 */
-  display: flex;
+  /*display: flex;*/
   flex-direction: column;
 }
 
@@ -100,7 +100,8 @@ nav {
   width: 200px;
   background-color: #f4f4f4;
   padding: 20px;
-  min-height: calc(100vh - 70px); /* 70px 是 header 的高度，设置 nav 的最小高度 */
+  --header-height: 140px; /* 默认高度，可以根据实际情况调整 */
+  min-height: calc(100vh - var(--header-height));
 }
 
 nav a {
