@@ -336,7 +336,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
                         std::string &name, std::string &author,
                         std::string &keyword, double &price) {
   static std::basic_regex main_pattern(
-      R"(^ *modify(?: +-ISBN=(?:[!-~]{1,20})| +-name=\"(?:[!#-~]{1,60})\"| +-author=\"(?:[!#-~]{1,60})\"| +-keyword=\"((?:[!#-{}~]{1,60}\|)*(?:[!#-{}~]{1,60}))\"| +-price=[0-9]{1,10}(?:\.[0-9]+)?)+ *$)",
+      R"(^ *modify(?: +-ISBN=(?:[!-~]{1,20})| +-name=\"(?:[!#-~]{1,60})\"| +-author=\"(?:[!#-~]{1,60})\"| +-keyword=\"((?:[!#-{}~]{1,60}\|)*(?:[!#-{}~]{1,60}))\"| +-price=[0-9]{1,13}(?:\.[0-9]+)?)+ *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
@@ -373,6 +373,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
         if (keyword.length() > 60) return false;
       } else if (token[1] == 'p') {
         if (has_price) return false;
+        if (token.substr(7).length() > 13) return false;
         has_price = true;
         price = std::stod(token.substr(7));
       } else
@@ -400,7 +401,7 @@ bool CommandModifyLexer(const std::string &command, std::string &ISBN,
 bool CommandImportLexer(const std::string &command, int &quantity,
                         double &total_cost) {
   static std::basic_regex main_pattern(
-      R"(^ *import +[0-9]{1,10} +[0-9]{1,10}(?:\.[0-9]+)? *$)",
+      R"(^ *import +[0-9]{1,10} +[0-9]{1,13}(?:\.[0-9]+)? *$)",
       std::regex_constants::optimize);
   if (std::regex_match(command, main_pattern)) {
     std::stringstream ss(command);
@@ -412,7 +413,10 @@ bool CommandImportLexer(const std::string &command, int &quantity,
     ss >> quantity_tmp;
     if (quantity_tmp > 2147483647) return false;
     quantity = quantity_tmp;
-    ss >> total_cost;
+    std::string total_cost_tmp;
+    ss >> total_cost_tmp;
+    if(total_cost_tmp.length() > 13) return false;
+    total_cost = std::stod(total_cost_tmp);
     return true;
   } else
     return false;
